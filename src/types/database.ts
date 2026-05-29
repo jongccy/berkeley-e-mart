@@ -1,0 +1,81 @@
+export type ListingType = "item" | "service" | "lease";
+export type ListingStatus = "active" | "sold" | "removed";
+export type WantedType = "item" | "service" | "lease";
+
+export type Profile = {
+  id: string;
+  display_name: string | null;
+  bio: string | null;
+  avatar_url: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Listing = {
+  id: string;
+  seller_id: string;
+  type: ListingType;
+  title: string;
+  description: string;
+  price_cents: number | null;
+  category: string;
+  status: ListingStatus;
+  address_area: string | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  lease_start: string | null;
+  lease_end: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ListingImage = {
+  id: string;
+  listing_id: string;
+  storage_path: string;
+  sort_order: number;
+  created_at: string;
+};
+
+export type ListingWithImages = Listing & {
+  listing_images: ListingImage[];
+  profiles: Pick<Profile, "id" | "display_name" | "avatar_url"> | null;
+};
+
+export type Conversation = {
+  id: string;
+  listing_id: string;
+  buyer_id: string;
+  seller_id: string;
+  last_message_at: string;
+  created_at: string;
+};
+
+export type Message = {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  body: string;
+  created_at: string;
+};
+
+export type WantedPost = {
+  id: string;
+  user_id: string;
+  type: WantedType;
+  title: string;
+  description: string;
+  category: string;
+  max_price_cents: number | null;
+  status: "open" | "closed";
+  created_at: string;
+  updated_at: string;
+  profiles?: Pick<Profile, "id" | "display_name" | "avatar_url"> | null;
+};
+
+export type ListingView = {
+  id: string;
+  user_id: string;
+  listing_id: string;
+  viewed_at: string;
+};
