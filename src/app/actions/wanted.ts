@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isVerifiedBerkeleyUser } from "@/lib/supabase/auth-helpers";
-import type { WantedType } from "@/types/database";
 
 export async function createWantedPost(formData: FormData) {
   const supabase = await createClient();
@@ -16,10 +15,9 @@ export async function createWantedPost(formData: FormData) {
     redirect("/wanted/new?error=Verify your Berkeley email to post requests.");
   }
 
-  const type = String(formData.get("type")) as WantedType;
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
-  const category = String(formData.get("category") ?? "general").trim();
+  const category = String(formData.get("category") ?? "other").trim();
   const maxPriceRaw = String(formData.get("max_price") ?? "").trim();
   const max_price_cents = maxPriceRaw
     ? Math.round(parseFloat(maxPriceRaw) * 100)
@@ -33,7 +31,6 @@ export async function createWantedPost(formData: FormData) {
     .from("wanted_posts")
     .insert({
       user_id: user.id,
-      type,
       title,
       description,
       category,

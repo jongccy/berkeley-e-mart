@@ -5,7 +5,14 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AVATAR_BUCKET } from "@/lib/constants";
 
-export async function updateProfile(formData: FormData) {
+export type ProfileFormState = {
+  error?: string;
+};
+
+export async function updateProfile(
+  _prevState: ProfileFormState,
+  formData: FormData
+): Promise<ProfileFormState> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -15,22 +22,33 @@ export async function updateProfile(formData: FormData) {
 
   const display_name = String(formData.get("display_name") ?? "").trim();
   const bio = String(formData.get("bio") ?? "").trim();
+  const identity_mode = String(formData.get("identity_mode") ?? "real_name");
+  const show_real_name = identity_mode !== "alias";
+  const marketplace_alias = String(formData.get("marketplace_alias") ?? "").trim();
+
+  if (!show_real_name && !marketplace_alias) {
+    return {
+      error: "Enter a marketplace ID or choose to share your display name.",
+    };
+  }
 
   const { error } = await supabase
     .from("profiles")
     .update({
       display_name: display_name || null,
       bio: bio || null,
+      show_real_name,
+      marketplace_alias: marketplace_alias || null,
     })
     .eq("id", user.id);
 
   if (error) {
-    redirect(`/profile/me?error=${encodeURIComponent(error.message)}`);
+    return { error: error.message };
   }
 
   revalidatePath("/profile/me");
   revalidatePath(`/profile/${user.id}`);
-  redirect("/profile/me");
+  redirect("/profile/me?saved=1");
 }
 
 export async function uploadAvatar(formData: FormData) {

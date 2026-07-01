@@ -1,18 +1,28 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { getSiteUrl } from "@/lib/auth";
+import { getSiteUrl, TERMS_ACKNOWLEDGED_COOKIE } from "@/lib/auth";
 
 type Props = {
   mode?: "signin" | "signup";
   redirectTo?: string;
+  disabled?: boolean;
+  requireTermsCookie?: boolean;
 };
 
 export function GoogleAuthButton({
   mode = "signin",
   redirectTo = "/",
+  disabled = false,
+  requireTermsCookie = false,
 }: Props) {
   async function handleGoogle() {
+    if (disabled) return;
+
+    if (requireTermsCookie) {
+      document.cookie = `${TERMS_ACKNOWLEDGED_COOKIE}=1; path=/; max-age=600; SameSite=Lax`;
+    }
+
     const supabase = createClient();
     const siteUrl =
       typeof window !== "undefined" ? window.location.origin : getSiteUrl();
@@ -36,7 +46,8 @@ export function GoogleAuthButton({
     <button
       type="button"
       onClick={handleGoogle}
-      className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+      disabled={disabled}
+      className="flex w-full items-center justify-center gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
     >
       <GoogleIcon />
       {mode === "signup" ? "Sign up with Google" : "Continue with Google"}

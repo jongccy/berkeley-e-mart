@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { getLikedListingIds } from "@/lib/listing-likes";
+import { PROFILE_IDENTITY_SELECT } from "@/lib/profile-display";
 import { ListingCard } from "./ListingCard";
 import type { ListingWithImages } from "@/types/database";
 
@@ -36,7 +38,7 @@ export async function RecommendationsSection({ userId }: { userId: string }) {
 
   let query = supabase
     .from("listings")
-    .select("*, listing_images(*)")
+    .select(`*, listing_images(*), profiles:seller_id(${PROFILE_IDENTITY_SELECT})`)
     .eq("status", "active")
     .in("category", categories)
     .neq("seller_id", userId)
@@ -52,6 +54,8 @@ export async function RecommendationsSection({ userId }: { userId: string }) {
   const listings = (recommendations ?? []) as ListingWithImages[];
   if (!listings.length) return null;
 
+  const likedIds = await getLikedListingIds(supabase, userId);
+
   return (
     <section className="space-y-4">
       <h2 className="text-xl font-semibold">Recommended for you</h2>
@@ -64,6 +68,9 @@ export async function RecommendationsSection({ userId }: { userId: string }) {
             key={listing.id}
             listing={listing}
             supabaseUrl={supabaseUrl}
+            showLike
+            loggedIn
+            liked={likedIds.has(listing.id)}
           />
         ))}
       </div>

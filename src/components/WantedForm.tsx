@@ -1,4 +1,4 @@
-import { CATEGORIES, LISTING_TYPES } from "@/lib/constants";
+import { CATEGORIES } from "@/lib/constants";
 
 type Props = {
   action: (formData: FormData) => Promise<void>;
@@ -7,20 +7,6 @@ type Props = {
 export function WantedForm({ action }: Props) {
   return (
     <form action={action} className="mx-auto max-w-xl space-y-4">
-      <div>
-        <label className="mb-1 block text-sm font-medium">Looking for</label>
-        <select
-          name="type"
-          defaultValue="item"
-          className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-        >
-          {LISTING_TYPES.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
-            </option>
-          ))}
-        </select>
-      </div>
       <div>
         <label className="mb-1 block text-sm font-medium">Title</label>
         <input
@@ -43,12 +29,12 @@ export function WantedForm({ action }: Props) {
           <label className="mb-1 block text-sm font-medium">Category</label>
           <select
             name="category"
-            defaultValue="general"
+            defaultValue="other"
             className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
           >
             {CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
+              <option key={c.value} value={c.value}>
+                {c.label}
               </option>
             ))}
           </select>

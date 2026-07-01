@@ -1,12 +1,13 @@
 {
-  "name": "berkeley-e-mart",
+  "name": "calket",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed:demo": "node --env-file=.env.local scripts/seed-demo-listing.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",

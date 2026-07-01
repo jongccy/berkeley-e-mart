@@ -1,4 +1,4 @@
-import type { ListingType } from "@/types/database";
+import { CATEGORIES } from "@/lib/constants";
 
 export function formatPrice(cents: number | null): string {
   if (cents === null) return "Contact for price";
@@ -9,13 +9,9 @@ export function formatPrice(cents: number | null): string {
   }).format(cents / 100);
 }
 
-export function formatListingType(type: ListingType): string {
-  const labels: Record<ListingType, string> = {
-    item: "Item",
-    service: "Service",
-    lease: "Lease",
-  };
-  return labels[type];
+export function formatCategory(value: string): string {
+  const match = CATEGORIES.find((c) => c.value === value);
+  return match?.label ?? value;
 }
 
 export function formatRelativeTime(iso: string): string {

@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { SignInForm } from "@/components/SignInForm";
+import { AuthCard } from "@/components/AuthCard";
 
 export default async function LoginPage({
   searchParams,
@@ -12,17 +14,23 @@ export default async function LoginPage({
   const params = await searchParams;
 
   return (
-    <div className="mx-auto max-w-md px-4 py-12">
-      <h1 className="mb-2 text-2xl font-bold">Log in</h1>
-      <p className="mb-6 text-sm text-zinc-500">
-        Use your Berkeley email, Google (@berkeley.edu), or password after email
-        verification.
-      </p>
+    <AuthCard
+      title="Welcome back"
+      subtitle="Sign in with your Berkeley Google account"
+      footer={
+        <>
+          Don&apos;t have an account?{" "}
+          <Link href="/signup" className="font-medium text-[#003262] underline dark:text-[#FDB515]">
+            Sign up
+          </Link>
+        </>
+      }
+    >
       <SignInForm
         redirectTo={params.redirect ?? "/"}
         message={params.message}
         urlError={params.error ? decodeURIComponent(params.error) : undefined}
       />
-    </div>
+    </AuthCard>
   );
 }

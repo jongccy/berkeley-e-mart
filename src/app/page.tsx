@@ -3,13 +3,16 @@ import { ListingCard } from "@/components/ListingCard";
 import { ListingFilters } from "@/components/ListingFilters";
 import { RecommendationsSection } from "@/components/RecommendationsSection";
 import { isVerifiedBerkeleyUser } from "@/lib/supabase/auth-helpers";
+import { getLikedListingIds } from "@/lib/listing-likes";
+import { expireSoldListings } from "@/lib/expire-sold-listings";
+import { getSoldListingCutoffIso } from "@/lib/sold-listings";
+import { PROFILE_IDENTITY_SELECT } from "@/lib/profile-display";
 import type { ListingWithImages } from "@/types/database";
 
 export const dynamic = "force-dynamic";
 
 type SearchParams = {
   q?: string;
-  type?: string;
   category?: string;
   min_price?: string;
   max_price?: string;
@@ -23,18 +26,22 @@ export default async function HomePage({
   const params = await searchParams;
   const supabase = await createClient();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+
+  await expireSoldListings(supabase);
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const soldCutoff = getSoldListingCutoffIso();
+
   let query = supabase
     .from("listings")
-    .select("*, listing_images(*)")
-    .eq("status", "active")
+    .select(`*, listing_images(*), profiles:seller_id(${PROFILE_IDENTITY_SELECT})`)
+    .or(`status.eq.active,and(status.eq.sold,sold_at.gte.${soldCutoff})`)
     .order("created_at", { ascending: false })
     .limit(48);
 
-  if (params.type) query = query.eq("type", params.type);
   if (params.category) query = query.eq("category", params.category);
   if (params.q) {
     query = query.or(
@@ -50,16 +57,15 @@ export default async function HomePage({
 
   const { data: listings } = await query;
   const items = (listings ?? []) as ListingWithImages[];
+  const likedIds = await getLikedListingIds(supabase, user?.id);
+  const showLike = Boolean(user);
+  const loggedIn = Boolean(user && isVerifiedBerkeleyUser(user));
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-8">
       <div>
-        <h1 className="text-3xl font-bold text-[#003262] dark:text-[#FDB515]">
-          Berkeley E-Mart
-        </h1>
-        <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-          Buy and sell with verified Berkeley students — items, services, and
-          leases.
+        <p className="text-zinc-600 dark:text-zinc-400">
+          Buy and sell with verified Berkeley students.
         </p>
       </div>
 
@@ -78,6 +84,9 @@ export default async function HomePage({
               key={listing.id}
               listing={listing}
               supabaseUrl={supabaseUrl}
+              showLike={showLike}
+              loggedIn={loggedIn}
+              liked={likedIds.has(listing.id)}
             />
           ))}
         </div>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Nav } from "@/components/Nav";
 import { VerifyBanner } from "@/components/VerifyBanner";
+import { SITE_NAME } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
 
@@ -16,9 +17,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Berkeley E-Mart",
+  title: SITE_NAME,
   description:
-    "Berkeley student marketplace for items, services, and housing leases.",
+    "Calket is a marketplace for UC Berkeley students to buy and sell items, services, and housing leases.",
 };
 
 export default async function RootLayout({
@@ -41,7 +42,7 @@ export default async function RootLayout({
         <VerifyBanner user={user} />
         <main className="flex-1">{children}</main>
         <footer className="border-t border-zinc-200 py-6 text-center text-xs text-zinc-500 dark:border-zinc-800">
-          Berkeley E-Mart — For verified UC Berkeley students only.
+          {SITE_NAME} — For verified UC Berkeley students only.
         </footer>
       </body>
     </html>

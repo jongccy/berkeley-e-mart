@@ -1,4 +1,4 @@
-# Berkeley E-Mart
+# Calket
 
 A marketplace for UC Berkeley students to buy and sell items, services, and housing leases. Only verified `@berkeley.edu` accounts can create listings, post requests, and message other users.
 
@@ -28,11 +28,24 @@ A marketplace for UC Berkeley students to buy and sell items, services, and hous
 
 ### 1. Supabase project
 
+Use a fresh Supabase project for Berkeley data. For launch, keep development
+and production separate if possible:
+
+- `calket-dev` for local testing and fake listings
+- `calket-prod` for real Berkeley users and marketplace data
+
 1. Create a project at [supabase.com](https://supabase.com).
 2. In **SQL Editor**, run migrations in order:
    - [`supabase/migrations/001_initial_schema.sql`](supabase/migrations/001_initial_schema.sql)
    - [`supabase/migrations/002_storage_and_phase2.sql`](supabase/migrations/002_storage_and_phase2.sql)
    - [`supabase/migrations/003_auth_fixes.sql`](supabase/migrations/003_auth_fixes.sql) — signup + Google auth fixes
+   - [`supabase/migrations/004_realtime_messages.sql`](supabase/migrations/004_realtime_messages.sql) — live chat updates
+   - [`supabase/migrations/005_seller_display.sql`](supabase/migrations/005_seller_display.sql) — anonymous/nickname seller display
+   - [`supabase/migrations/006_profile_marketplace_identity.sql`](supabase/migrations/006_profile_marketplace_identity.sql) — profile alias toggle
+   - [`supabase/migrations/007_remove_type_and_recategorize.sql`](supabase/migrations/007_remove_type_and_recategorize.sql) — remove type, new categories
+   - [`supabase/migrations/008_listing_quality_rating.sql`](supabase/migrations/008_listing_quality_rating.sql) — quality rating, remove anonymous seller mode
+   - [`supabase/migrations/009_listing_tags.sql`](supabase/migrations/009_listing_tags.sql) — listing tags
+   - [`supabase/migrations/010_wanted_conversations.sql`](supabase/migrations/010_wanted_conversations.sql) — message requesters on wanted posts
 3. In **Storage**, create two **public** buckets:
    - `listing-images`
    - `avatars`
@@ -54,9 +67,31 @@ Fill in:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
+
+### Demo listing (another seller)
+
+To preview someone else's listing (teak armchair example with seller bio and photo):
+
+1. In Supabase **Settings → API**, copy the **service_role** key (keep it secret).
+2. Add to `.env.local`:
+
+```env
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
+
+3. Run:
+
+```bash
+npm run seed:demo
+```
+
+4. Open the printed URL, or go to:
+
+`http://localhost:3000/listings/b0000000-0000-4000-8000-000000000001`
+
+This creates a demo seller **Homestead Furnishings** (`demo.seller@berkeley.edu`) — not your account — so you can test viewing another person's listing, seller info, and messaging.
 
 ### 3. Run locally
 

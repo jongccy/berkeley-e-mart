@@ -1,6 +1,8 @@
 /** Matches user@berkeley.edu and user@haas.berkeley.edu */
 const BERKELEY_EMAIL_REGEX = /^[^@\s]+@([a-z0-9-]+\.)*berkeley\.edu$/i;
 
+export const TERMS_ACKNOWLEDGED_COOKIE = "terms_acknowledged";
+
 export function isBerkeleyEmail(email: string): boolean {
   return BERKELEY_EMAIL_REGEX.test(email.trim());
 }

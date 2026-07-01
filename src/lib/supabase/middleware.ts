@@ -30,7 +30,17 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
-  const protectedPrefixes = ["/listings/new", "/inbox", "/profile/me", "/wanted/new"];
+  const authPaths = ["/login", "/signup", "/accept-terms", "/auth/callback"];
+  const isAuthPath = authPaths.some(
+    (authPath) => path === authPath || path.startsWith(`${authPath}/`)
+  );
+
+  const protectedPrefixes = [
+    "/listings/new",
+    "/inbox",
+    "/profile/me",
+    "/wanted/new",
+  ];
   const isListingEdit = /^\/listings\/[^/]+\/edit$/.test(path);
   const isProtected =
     isListingEdit ||
@@ -38,11 +48,26 @@ export async function updateSession(request: NextRequest) {
       (prefix) => path === prefix || path.startsWith(`${prefix}/`)
     );
 
-  if (isProtected && !user) {
+  if (isProtected && !user && !isAuthPath) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("redirect", path);
     return NextResponse.redirect(url);
+  }
+
+  if (user && isProtected && !isAuthPath) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("terms_accepted_at")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (!profile?.terms_accepted_at) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/accept-terms";
+      url.searchParams.set("next", path);
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;

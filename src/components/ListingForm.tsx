@@ -1,30 +1,101 @@
-import { CATEGORIES, LISTING_TYPES } from "@/lib/constants";
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useActionState, useEffect, useState } from "react";
+import {
+  CATEGORIES,
+  HOUSING_CATEGORY,
+  OTHER_CATEGORY,
+} from "@/lib/constants";
+import {
+  createListing,
+  updateListingFromForm,
+  type ListingFormState,
+} from "@/app/actions/listings";
+import { ListingPhotoUpload } from "@/components/ListingPhotoUpload";
+import { ListingTagPicker } from "@/components/ListingTagPicker";
+import { QualityStars } from "@/components/QualityStars";
 import type { Listing } from "@/types/database";
 
 type Props = {
   listing?: Listing;
-  action: (formData: FormData) => Promise<void>;
 };
 
-export function ListingForm({ listing, action }: Props) {
-  const defaultType = listing?.type ?? "item";
+export function ListingForm({ listing }: Props) {
+  const isEdit = !!listing;
+  const [editState, editAction, editPending] = useActionState<
+    ListingFormState,
+    FormData
+  >(updateListingFromForm, {});
+  const router = useRouter();
+
+  useEffect(() => {
+    if (editState.redirectTo) {
+      router.push(editState.redirectTo);
+    }
+  }, [editState.redirectTo, router]);
+
+  const defaultCategory = listing?.category ?? OTHER_CATEGORY;
+  const [category, setCategory] = useState(defaultCategory);
+  const [qualityRating, setQualityRating] = useState(
+    listing?.quality_rating && listing.quality_rating >= 1
+      ? listing.quality_rating
+      : 0
+  );
+  const [qualityError, setQualityError] = useState("");
+  const [price, setPrice] = useState(
+    listing?.price_cents != null ? (listing.price_cents / 100).toString() : ""
+  );
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const [photoError, setPhotoError] = useState("");
+  const [isDirty, setIsDirty] = useState(false);
+  const isHousing = category === HOUSING_CATEGORY;
+  const isNewListing = !listing;
+
+  function handlePriceChange(value: string) {
+    const sanitized = value.replace(/[^0-9.]/g, "");
+    const parts = sanitized.split(".");
+    const normalized =
+      parts.length > 1
+        ? `${parts[0]}.${parts.slice(1).join("").slice(0, 2)}`
+        : sanitized;
+    setPrice(normalized);
+    setIsDirty(true);
+  }
+
+  function validateBeforeSubmit(event: React.FormEvent<HTMLFormElement>) {
+    setQualityError("");
+    setPhotoError("");
+
+    if (qualityRating < 1 || qualityRating > 5) {
+      event.preventDefault();
+      setQualityError("Select a quality rating from 1 to 5 stars.");
+      return;
+    }
+
+    if (isNewListing && photoFiles.length === 0) {
+      event.preventDefault();
+      setPhotoError("Add at least one photo.");
+    }
+  }
+
+  const formError = editState.error;
 
   return (
-    <form action={action} className="mx-auto max-w-xl space-y-4">
-      <div>
-        <label className="mb-1 block text-sm font-medium">Type</label>
-        <select
-          name="type"
-          defaultValue={defaultType}
-          className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-        >
-          {LISTING_TYPES.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
-            </option>
-          ))}
-        </select>
-      </div>
+    <form
+      action={isEdit ? editAction : createListing}
+      className="mx-auto max-w-xl space-y-4"
+      onSubmit={validateBeforeSubmit}
+      onChange={() => setIsDirty(true)}
+    >
+      {isEdit && <input type="hidden" name="listing_id" value={listing.id} />}
+
+      {formError && (
+        <p className="rounded-lg bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950 dark:text-red-200">
+          {formError}
+        </p>
+      )}
 
       <div>
         <label className="mb-1 block text-sm font-medium">Title</label>
@@ -52,97 +123,159 @@ export function ListingForm({ listing, action }: Props) {
           <label className="mb-1 block text-sm font-medium">Category</label>
           <select
             name="category"
-            defaultValue={listing?.category ?? "general"}
+            required
+            value={category}
+            onChange={(e) => {
+              setCategory(e.target.value);
+              setIsDirty(true);
+            }}
             className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
           >
             {CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
+              <option key={c.value} value={c.value}>
+                {c.label}
               </option>
             ))}
+            {listing?.category &&
+              !CATEGORIES.some((c) => c.value === listing.category) && (
+                <option value={listing.category}>{listing.category}</option>
+              )}
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">
-            Price (USD, optional)
-          </label>
-          <input
-            name="price"
-            type="number"
-            min="0"
-            step="0.01"
-            defaultValue={
-              listing?.price_cents != null
-                ? (listing.price_cents / 100).toString()
-                : ""
-            }
-            className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-          />
+          <label className="mb-1 block text-sm font-medium">Price</label>
+          <div className="relative">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
+              $
+            </span>
+            <input
+              name="price"
+              type="text"
+              inputMode="decimal"
+              required
+              value={price}
+              onChange={(e) => handlePriceChange(e.target.value)}
+              placeholder="0.00"
+              className="w-full rounded-lg border border-zinc-300 py-2 pl-7 pr-3 dark:border-zinc-700 dark:bg-zinc-950"
+            />
+          </div>
         </div>
       </div>
 
-      <fieldset className="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-        <legend className="px-1 text-sm font-medium">Lease details (if housing)</legend>
-        <input
-          name="address_area"
-          placeholder="Neighborhood / area only"
-          defaultValue={listing?.address_area ?? ""}
-          className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+      <div>
+        <label className="mb-2 block text-sm font-medium">Quality</label>
+        <QualityStars
+          value={qualityRating}
+          onChange={(value) => {
+            setQualityRating(value);
+            setIsDirty(true);
+          }}
         />
-        <div className="grid gap-3 sm:grid-cols-2">
-          <input
-            name="bedrooms"
-            type="number"
-            min="0"
-            placeholder="Bedrooms"
-            defaultValue={listing?.bedrooms ?? ""}
-            className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-          />
-          <input
-            name="bathrooms"
-            type="number"
-            min="0"
-            step="0.5"
-            placeholder="Bathrooms"
-            defaultValue={listing?.bathrooms ?? ""}
-            className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-          />
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <input
-            name="lease_start"
-            type="date"
-            defaultValue={listing?.lease_start ?? ""}
-            className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-          />
-          <input
-            name="lease_end"
-            type="date"
-            defaultValue={listing?.lease_end ?? ""}
-            className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-          />
-        </div>
-      </fieldset>
+        {qualityError && (
+          <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+            {qualityError}
+          </p>
+        )}
+      </div>
 
-      {!listing && (
-        <div>
-          <label className="mb-1 block text-sm font-medium">Photos</label>
+      <ListingTagPicker
+        initialTags={listing?.tags ?? []}
+        onTagsChange={() => setIsDirty(true)}
+      />
+
+      {isHousing && (
+        <fieldset className="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+          <legend className="px-1 text-sm font-medium">
+            Housing / leasing details
+          </legend>
           <input
-            name="images"
-            type="file"
-            accept="image/*"
-            multiple
-            className="w-full text-sm"
+            name="address_area"
+            required
+            placeholder="Neighborhood / area only"
+            defaultValue={listing?.address_area ?? ""}
+            className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
           />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <input
+              name="bedrooms"
+              type="number"
+              min="0"
+              required
+              placeholder="Bedrooms"
+              defaultValue={listing?.bedrooms ?? ""}
+              className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+            />
+            <input
+              name="bathrooms"
+              type="number"
+              min="0"
+              step="0.5"
+              required
+              placeholder="Bathrooms"
+              defaultValue={listing?.bathrooms ?? ""}
+              className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+            />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <input
+              name="lease_start"
+              type="date"
+              required
+              defaultValue={listing?.lease_start ?? ""}
+              className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+            />
+            <input
+              name="lease_end"
+              type="date"
+              required
+              defaultValue={listing?.lease_end ?? ""}
+              className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+            />
+          </div>
+        </fieldset>
+      )}
+
+      {isNewListing && (
+        <div>
+          <ListingPhotoUpload onFilesChange={setPhotoFiles} />
+          {photoError && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              {photoError}
+            </p>
+          )}
         </div>
       )}
 
-      <button
-        type="submit"
-        className="w-full rounded-lg bg-[#003262] py-2.5 font-medium text-white hover:bg-[#002244]"
-      >
-        {listing ? "Save changes" : "Create listing"}
-      </button>
+      <div className="space-y-3">
+        <button
+          type="submit"
+          disabled={isEdit && editPending}
+          className="w-full rounded-lg bg-[#003262] py-2.5 font-medium text-white hover:bg-[#002244] disabled:opacity-60"
+        >
+          {editPending
+            ? "Saving..."
+            : listing
+              ? "Save changes"
+              : "Create listing"}
+        </button>
+
+        {isEdit && (
+          <Link
+            href={`/listings/${listing.id}`}
+            onClick={(event) => {
+              if (
+                isDirty &&
+                !window.confirm("Discard unsaved changes?")
+              ) {
+                event.preventDefault();
+              }
+            }}
+            className="block w-full rounded-lg border border-zinc-300 py-2.5 text-center font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+          >
+            Return to Listings
+          </Link>
+        )}
+      </div>
     </form>
   );
 }

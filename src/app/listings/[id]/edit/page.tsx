@@ -1,6 +1,5 @@
 import { notFound, redirect } from "next/navigation";
 import { ListingForm } from "@/components/ListingForm";
-import { updateListing } from "@/app/actions/listings";
 import { createClient } from "@/lib/supabase/server";
 import { isVerifiedBerkeleyUser } from "@/lib/supabase/auth-helpers";
 import type { Listing } from "@/types/database";
@@ -30,12 +29,10 @@ export default async function EditListingPage({
 
   if (!listing) notFound();
 
-  const boundUpdate = updateListing.bind(null, id);
-
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold">Edit listing</h1>
-      <ListingForm listing={listing as Listing} action={boundUpdate} />
+      <ListingForm listing={listing as Listing} />
     </div>
   );
 }

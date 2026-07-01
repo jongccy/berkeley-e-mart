@@ -1,13 +1,29 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { updateProfile, uploadAvatar } from "@/app/actions/profile";
+import { uploadAvatar } from "@/app/actions/profile";
+import { signOut } from "@/app/actions/auth";
 import { isVerifiedBerkeleyUser } from "@/lib/supabase/auth-helpers";
+import { ListingCard } from "@/components/ListingCard";
+import { AvatarUpload } from "@/components/AvatarUpload";
+import { ProfileSettingsForm } from "@/components/ProfileSettingsForm";
+import {
+  countArchivedSoldListings,
+  expireSoldListings,
+} from "@/lib/expire-sold-listings";
+import { formatArchivedSoldCount, getSoldListingCutoffIso } from "@/lib/sold-listings";
+import type { ListingWithImages, Profile } from "@/types/database";
 
 export const dynamic = "force-dynamic";
 
-export default async function MyProfilePage() {
+export default async function MyProfilePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; saved?: string; tab?: string }>;
+}) {
+  const { error: urlError, saved, tab } = await searchParams;
   const supabase = await createClient();
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -22,54 +38,158 @@ export default async function MyProfilePage() {
 
   const verified = isVerifiedBerkeleyUser(user);
 
+  await expireSoldListings(supabase);
+
+  const showSold = tab === "sold";
+  const soldCutoff = getSoldListingCutoffIso();
+
+  const { data: listings } = await supabase
+    .from("listings")
+    .select("*, listing_images(*)")
+    .eq("seller_id", user.id)
+    .eq("status", "active")
+    .order("created_at", { ascending: false });
+  const activeItems = (listings ?? []) as ListingWithImages[];
+
+  const { data: recentSoldListings } = await supabase
+    .from("listings")
+    .select("*, listing_images(*)")
+    .eq("seller_id", user.id)
+    .eq("status", "sold")
+    .gte("sold_at", soldCutoff)
+    .order("sold_at", { ascending: false });
+  const recentSoldItems = (recentSoldListings ?? []) as ListingWithImages[];
+
+  const archivedSoldCount = await countArchivedSoldListings(supabase, user.id);
+
+  const { data: savedRows } = await supabase
+    .from("listing_likes")
+    .select("listing_id, listings(*, listing_images(*))")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  const savedListings = (savedRows ?? [])
+    .map((row) => {
+      const raw = row.listings as ListingWithImages | ListingWithImages[] | null;
+      return Array.isArray(raw) ? raw[0] : raw;
+    })
+    .filter((listing): listing is ListingWithImages => {
+      if (!listing) return false;
+      return listing.status !== "removed";
+    });
+
   return (
-    <div className="mx-auto max-w-md space-y-8 px-4 py-8">
-      <div>
-        <h1 className="text-2xl font-bold">Your profile</h1>
-        <p className="mt-1 text-sm text-zinc-500">{user.email}</p>
-        {!verified && (
-          <p className="mt-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
-            Email not verified. Check your inbox for the verification link.
-          </p>
+    <div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
+      <AvatarUpload
+        avatarUrl={profile?.avatar_url ?? null}
+        action={uploadAvatar}
+      />
+
+      {urlError && (
+        <p className="rounded-lg bg-red-50 p-3 text-sm text-red-800 dark:bg-red-950 dark:text-red-200">
+          {urlError}
+        </p>
+      )}
+      {saved === "1" && (
+        <p className="rounded-lg bg-green-50 p-3 text-sm text-green-800 dark:bg-green-950 dark:text-green-200">
+          Profile saved.
+        </p>
+      )}
+      {!verified && (
+        <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+          Email not verified. Check your inbox for the verification link.
+        </p>
+      )}
+
+      <ProfileSettingsForm
+        profile={profile as Profile | null}
+        userEmail={user.email ?? ""}
+      />
+
+      <section className="rounded-xl bg-zinc-100 p-5 dark:bg-zinc-900">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">History</h2>
+          <div className="flex gap-3 text-sm">
+            <Link
+              href="/profile/me"
+              className={
+                !showSold
+                  ? "font-medium text-[#003262] dark:text-[#FDB515]"
+                  : "text-zinc-500"
+              }
+            >
+              Active
+            </Link>
+            <Link
+              href="/profile/me?tab=sold"
+              className={
+                showSold
+                  ? "font-medium text-[#003262] dark:text-[#FDB515]"
+                  : "text-zinc-500"
+              }
+            >
+              Sold
+            </Link>
+          </div>
+        </div>
+        {showSold ? (
+          <>
+            {recentSoldItems.length > 0 ? (
+              <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                {recentSoldItems.map((listing) => (
+                  <ListingCard
+                    key={listing.id}
+                    listing={listing}
+                    supabaseUrl={supabaseUrl}
+                  />
+                ))}
+              </div>
+            ) : archivedSoldCount === 0 ? (
+              <p className="mt-3 text-sm text-zinc-500">No sold listings yet.</p>
+            ) : null}
+            {archivedSoldCount > 0 && (
+              <p className="mt-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                {formatArchivedSoldCount(archivedSoldCount)}
+              </p>
+            )}
+          </>
+        ) : activeItems.length === 0 ? (
+          <p className="mt-3 text-sm text-zinc-500">No active listings yet.</p>
+        ) : (
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
+            {activeItems.map((listing) => (
+              <ListingCard
+                key={listing.id}
+                listing={listing}
+                supabaseUrl={supabaseUrl}
+              />
+            ))}
+          </div>
         )}
-      </div>
+      </section>
 
-      <form action={uploadAvatar} className="space-y-2">
-        <label className="block text-sm font-medium">Avatar</label>
-        <input name="avatar" type="file" accept="image/*" className="text-sm" />
-        <button
-          type="submit"
-          className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700"
-        >
-          Upload avatar
-        </button>
-      </form>
-
-      <form action={updateProfile} className="space-y-4">
-        <div>
-          <label className="mb-1 block text-sm font-medium">Display name</label>
-          <input
-            name="display_name"
-            defaultValue={profile?.display_name ?? ""}
-            className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Bio</label>
-          <textarea
-            name="bio"
-            rows={4}
-            defaultValue={profile?.bio ?? ""}
-            className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-          />
-        </div>
-        <button
-          type="submit"
-          className="w-full rounded-lg bg-[#003262] py-2.5 text-white hover:bg-[#002244]"
-        >
-          Save profile
-        </button>
-      </form>
+      <section className="rounded-xl bg-zinc-100 p-5 dark:bg-zinc-900">
+        <h2 className="text-sm font-semibold">Saved</h2>
+        <p className="mt-1 text-xs text-zinc-500">
+          Listings you&apos;ve liked. Only visible to you.
+        </p>
+        {savedListings.length === 0 ? (
+          <p className="mt-3 text-sm text-zinc-500">No saved listings yet.</p>
+        ) : (
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
+            {savedListings.map((listing) => (
+              <ListingCard
+                key={listing.id}
+                listing={listing}
+                supabaseUrl={supabaseUrl}
+                showLike
+                loggedIn={verified}
+                liked
+              />
+            ))}
+          </div>
+        )}
+      </section>
 
       <p className="text-center text-sm">
         <Link href={`/profile/${user.id}`} className="text-[#003262] underline">
@@ -80,6 +200,15 @@ export default async function MyProfilePage() {
           Your messages
         </Link>
       </p>
+
+      <form action={signOut} className="pt-2 text-center">
+        <button
+          type="submit"
+          className="text-sm text-zinc-500 hover:text-red-600 hover:underline dark:hover:text-red-400"
+        >
+          Sign out
+        </button>
+      </form>
     </div>
   );
 }

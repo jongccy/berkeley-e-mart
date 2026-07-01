@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ListingForm } from "@/components/ListingForm";
-import { createListing } from "@/app/actions/listings";
 import { createClient } from "@/lib/supabase/server";
 import { isVerifiedBerkeleyUser } from "@/lib/supabase/auth-helpers";
 import { redirect } from "next/navigation";
@@ -33,7 +32,7 @@ export default async function NewListingPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold">Create listing</h1>
-      <ListingForm action={createListing} />
+      <ListingForm />
     </div>
   );
 }

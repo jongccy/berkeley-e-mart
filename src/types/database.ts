@@ -1,30 +1,36 @@
-export type ListingType = "item" | "service" | "lease";
 export type ListingStatus = "active" | "sold" | "removed";
-export type WantedType = "item" | "service" | "lease";
+export type SellerDisplayMode = "profile" | "nickname";
 
 export type Profile = {
   id: string;
   display_name: string | null;
   bio: string | null;
   avatar_url: string | null;
+  show_real_name: boolean;
+  marketplace_alias: string | null;
   created_at: string;
   updated_at: string;
+  terms_accepted_at: string | null;
 };
 
 export type Listing = {
   id: string;
   seller_id: string;
-  type: ListingType;
   title: string;
   description: string;
   price_cents: number | null;
   category: string;
   status: ListingStatus;
+  sold_at: string | null;
   address_area: string | null;
   bedrooms: number | null;
   bathrooms: number | null;
   lease_start: string | null;
   lease_end: string | null;
+  seller_display_mode: SellerDisplayMode;
+  seller_display_name: string | null;
+  quality_rating: number | null;
+  tags: string[];
   created_at: string;
   updated_at: string;
 };
@@ -39,12 +45,16 @@ export type ListingImage = {
 
 export type ListingWithImages = Listing & {
   listing_images: ListingImage[];
-  profiles: Pick<Profile, "id" | "display_name" | "avatar_url"> | null;
+  profiles: Pick<
+    Profile,
+    "id" | "display_name" | "show_real_name" | "marketplace_alias" | "avatar_url"
+  > | null;
 };
 
 export type Conversation = {
   id: string;
-  listing_id: string;
+  listing_id: string | null;
+  wanted_post_id: string | null;
   buyer_id: string;
   seller_id: string;
   last_message_at: string;
@@ -62,7 +72,6 @@ export type Message = {
 export type WantedPost = {
   id: string;
   user_id: string;
-  type: WantedType;
   title: string;
   description: string;
   category: string;
@@ -70,7 +79,10 @@ export type WantedPost = {
   status: "open" | "closed";
   created_at: string;
   updated_at: string;
-  profiles?: Pick<Profile, "id" | "display_name" | "avatar_url"> | null;
+  profiles?: Pick<
+    Profile,
+    "id" | "display_name" | "show_real_name" | "marketplace_alias" | "avatar_url"
+  > | null;
 };
 
 export type ListingView = {
@@ -78,4 +90,10 @@ export type ListingView = {
   user_id: string;
   listing_id: string;
   viewed_at: string;
+};
+
+export type ListingLike = {
+  user_id: string;
+  listing_id: string;
+  created_at: string;
 };

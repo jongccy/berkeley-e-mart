@@ -97,3 +97,34 @@ export async function signOut() {
   await supabase.auth.signOut();
   redirect("/");
 }
+
+export async function acceptTerms(
+  formData: FormData
+): Promise<AuthFormState | void> {
+  const agreed = formData.get("agreed") === "on";
+  const redirectTo = String(formData.get("redirect") ?? "/");
+
+  if (!agreed) {
+    return { error: "You must agree to the Terms of Service and Privacy Policy." };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ terms_accepted_at: new Date().toISOString() })
+    .eq("id", user.id);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  redirect(redirectTo);
+}

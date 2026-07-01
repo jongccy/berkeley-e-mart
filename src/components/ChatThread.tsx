@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { sendMessage } from "@/app/actions/chat";
 import { createClient } from "@/lib/supabase/client";
 import { formatRelativeTime } from "@/lib/format";
 import type { Message } from "@/types/database";
@@ -16,9 +18,11 @@ export function ChatThread({
   currentUserId,
   initialMessages,
 }: Props) {
+  const router = useRouter();
   const [messages, setMessages] = useState(initialMessages);
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,30 +62,25 @@ export function ChatThread({
     if (!text || sending) return;
 
     setSending(true);
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from("messages")
-      .insert({
-        conversation_id: conversationId,
-        sender_id: currentUserId,
-        body: text,
-      })
-      .select()
-      .single();
+    setError("");
 
+    const result = await sendMessage(conversationId, text);
     setSending(false);
-    if (error) {
-      alert(error.message);
+
+    if (result.error) {
+      setError(result.error);
       return;
     }
 
-    if (data) {
+    if (result.message) {
       setMessages((prev) => {
-        if (prev.some((m) => m.id === data.id)) return prev;
-        return [...prev, data as Message];
+        if (prev.some((m) => m.id === result.message!.id)) return prev;
+        return [...prev, result.message!];
       });
     }
+
     setBody("");
+    router.refresh();
   }
 
   return (
@@ -111,8 +110,18 @@ export function ChatThread({
             </div>
           );
         })}
+        {messages.length === 0 && (
+          <p className="text-center text-sm text-zinc-500">
+            No messages yet. Say hello below.
+          </p>
+        )}
         <div ref={bottomRef} />
       </div>
+      {error && (
+        <p className="border-t border-zinc-200 px-3 pt-2 text-sm text-red-600 dark:border-zinc-800 dark:text-red-400">
+          {error}
+        </p>
+      )}
       <form onSubmit={handleSend} className="flex gap-2 border-t border-zinc-200 p-3 dark:border-zinc-800">
         <input
           value={body}

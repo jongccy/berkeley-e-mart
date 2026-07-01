@@ -1,6 +1,7 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { isBerkeleyEmail } from "@/lib/auth";
+import { isBerkeleyEmail, TERMS_ACKNOWLEDGED_COOKIE } from "@/lib/auth";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -35,19 +36,47 @@ export async function GET(request: Request) {
     );
   }
 
+  const cookieStore = await cookies();
+  const termsAcknowledged =
+    cookieStore.get(TERMS_ACKNOWLEDGED_COOKIE)?.value === "1";
+
   const displayName =
     user.user_metadata?.full_name ??
     user.user_metadata?.name ??
     user.email.split("@")[0];
 
-  await supabase.from("profiles").upsert(
-    {
-      id: user.id,
-      display_name: displayName,
-      avatar_url: user.user_metadata?.avatar_url ?? null,
-    },
-    { onConflict: "id" }
-  );
+  const profilePayload: {
+    id: string;
+    display_name: string;
+    avatar_url: string | null;
+    terms_accepted_at?: string;
+  } = {
+    id: user.id,
+    display_name: displayName,
+    avatar_url: user.user_metadata?.avatar_url ?? null,
+  };
 
-  return NextResponse.redirect(`${origin}${next}`);
+  if (termsAcknowledged) {
+    profilePayload.terms_accepted_at = new Date().toISOString();
+  }
+
+  await supabase.from("profiles").upsert(profilePayload, { onConflict: "id" });
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("terms_accepted_at")
+    .eq("id", user.id)
+    .single();
+
+  const redirectPath = !profile?.terms_accepted_at
+    ? `/accept-terms?next=${encodeURIComponent(next)}`
+    : next;
+
+  const response = NextResponse.redirect(`${origin}${redirectPath}`);
+
+  if (termsAcknowledged) {
+    response.cookies.delete(TERMS_ACKNOWLEDGED_COOKIE);
+  }
+
+  return response;
 }
