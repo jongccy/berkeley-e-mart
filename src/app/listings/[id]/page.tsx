@@ -1,9 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
+import { ListingImageGallery } from "@/components/ListingImageGallery";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { MessageSellerButton } from "@/components/MessageSellerButton";
-import { logListingView, markListingSold } from "@/app/actions/listings";
+import { logListingView, markListingSold, removeListing } from "@/app/actions/listings";
 import {
   formatPrice,
   formatCategory,
@@ -20,11 +20,12 @@ import { ListingStatusBadge } from "@/components/ListingStatusBadge";
 import { ListingTags } from "@/components/ListingTags";
 import { ListingLikeButton } from "@/components/ListingLikeButton";
 import { MarkAsSoldButton } from "@/components/MarkAsSoldButton";
+import { DeleteListingButton } from "@/components/DeleteListingButton";
 import { ProfileAvatar } from "@/components/ProfileAvatar";
 import { getLikedListingIds } from "@/lib/listing-likes";
 import { expireSoldListings } from "@/lib/expire-sold-listings";
 import { isSoldListingVisible } from "@/lib/sold-listings";
-import { isVerifiedBerkeleyUser } from "@/lib/supabase/auth-helpers";
+import { isAuthenticatedBerkeleyUser } from "@/lib/supabase/auth-helpers";
 
 import type { ListingWithImages } from "@/types/database";
 
@@ -85,6 +86,10 @@ export default async function ListingDetailPage({
   const images = [...(item.listing_images ?? [])].sort(
     (a, b) => a.sort_order - b.sort_order
   );
+  const galleryImages = images.map((img) => ({
+    id: img.id,
+    url: getPublicImageUrl(supabaseUrl, LISTING_IMAGE_BUCKET, img.storage_path),
+  }));
 
   let existingConversationId: string | null = null;
   if (user && user.id !== item.seller_id) {
@@ -99,7 +104,7 @@ export default async function ListingDetailPage({
 
   const likedIds = await getLikedListingIds(supabase, user?.id);
   const isLiked = likedIds.has(id);
-  const loggedIn = Boolean(user && isVerifiedBerkeleyUser(user));
+  const canLike = Boolean(user && isAuthenticatedBerkeleyUser(user));
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -123,28 +128,8 @@ export default async function ListingDetailPage({
       )}
 
       <div className="grid gap-8 lg:grid-cols-2">
-        <div className="space-y-3">
-          {images.length > 0 ? (
-            images.map((img) => (
-              <div key={img.id} className="relative aspect-[4/3] overflow-hidden rounded-xl">
-                <Image
-                  src={getPublicImageUrl(
-                    supabaseUrl,
-                    LISTING_IMAGE_BUCKET,
-                    img.storage_path
-                  )}
-                  alt={item.title}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                />
-              </div>
-            ))
-          ) : (
-            <div className="flex aspect-[4/3] items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800">
-              No photos
-            </div>
-          )}
+        <div>
+          <ListingImageGallery images={galleryImages} alt={item.title} />
         </div>
 
         <div className="space-y-4">
@@ -160,7 +145,7 @@ export default async function ListingDetailPage({
               <ListingLikeButton
               listingId={item.id}
               initialLiked={isLiked}
-              loggedIn={loggedIn}
+              loggedIn={canLike}
               loginRedirect={`/listings/${item.id}`}
               className="shrink-0"
             />
@@ -276,6 +261,9 @@ export default async function ListingDetailPage({
               >
                 Edit
               </Link>
+              <DeleteListingButton
+                action={removeListing.bind(null, item.id)}
+              />
               <MarkAsSoldButton action={markListingSold.bind(null, item.id)} />
             </div>
           )}

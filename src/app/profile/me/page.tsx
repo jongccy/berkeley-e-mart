@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { uploadAvatar } from "@/app/actions/profile";
 import { signOut } from "@/app/actions/auth";
-import { isVerifiedBerkeleyUser } from "@/lib/supabase/auth-helpers";
+import { isAuthenticatedBerkeleyUser, isVerifiedBerkeleyUser } from "@/lib/supabase/auth-helpers";
 import { ListingCard } from "@/components/ListingCard";
 import { AvatarUpload } from "@/components/AvatarUpload";
 import { ProfileSettingsForm } from "@/components/ProfileSettingsForm";
@@ -37,6 +37,7 @@ export default async function MyProfilePage({
     .single();
 
   const verified = isVerifiedBerkeleyUser(user);
+  const canLike = isAuthenticatedBerkeleyUser(user);
 
   await expireSoldListings(supabase);
 
@@ -182,8 +183,8 @@ export default async function MyProfilePage({
                 key={listing.id}
                 listing={listing}
                 supabaseUrl={supabaseUrl}
-                showLike
-                loggedIn={verified}
+                showLike={canLike}
+                loggedIn={canLike}
                 liked
               />
             ))}

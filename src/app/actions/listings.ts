@@ -55,26 +55,70 @@ function parseListingForm(formData: FormData) {
   };
 }
 
-export async function createListing(formData: FormData) {
+async function uploadListingImages(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  listingId: string,
+  validImages: File[]
+): Promise<string | null> {
+  let uploaded = 0;
+
+  for (let i = 0; i < validImages.length; i++) {
+    const file = validImages[i];
+    const ext = file.name.split(".").pop() ?? "jpg";
+    const path = `${userId}/${listingId}/${i}.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from(LISTING_IMAGE_BUCKET)
+      .upload(path, file);
+
+    if (uploadError) {
+      return uploadError.message;
+    }
+
+    const { error: imageRowError } = await supabase
+      .from("listing_images")
+      .insert({
+        listing_id: listingId,
+        storage_path: path,
+        sort_order: i,
+      });
+
+    if (imageRowError) {
+      return imageRowError.message;
+    }
+
+    uploaded++;
+  }
+
+  if (uploaded === 0) {
+    return "Failed to upload photos.";
+  }
+
+  return null;
+}
+
+async function createListingInternal(
+  formData: FormData
+): Promise<ListingFormState> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user || !isVerifiedBerkeleyUser(user)) {
-    redirect("/listings/new?error=Verify your Berkeley email to create listings.");
+    return { error: "Sign in with your Berkeley email to create listings." };
   }
 
   const data = parseListingForm(formData);
   const validationError = validateListingData(data);
   if (validationError) {
-    redirect(`/listings/new?error=${encodeURIComponent(validationError)}`);
+    return { error: validationError };
   }
 
   const images = formData.getAll("images") as File[];
   const validImages = images.filter((file) => file && file.size > 0);
   if (validImages.length === 0) {
-    redirect("/listings/new?error=Add at least one photo.");
+    return { error: "Add at least one photo." };
   }
 
   const { data: listing, error } = await supabase
@@ -84,28 +128,38 @@ export async function createListing(formData: FormData) {
     .single();
 
   if (error) {
-    redirect(`/listings/new?error=${encodeURIComponent(error.message)}`);
+    return { error: error.message };
   }
 
-  for (let i = 0; i < validImages.length; i++) {
-    const file = validImages[i];
-    const ext = file.name.split(".").pop() ?? "jpg";
-    const path = `${user.id}/${listing.id}/${i}.${ext}`;
-    const { error: uploadError } = await supabase.storage
-      .from(LISTING_IMAGE_BUCKET)
-      .upload(path, file);
+  const uploadError = await uploadListingImages(
+    supabase,
+    user.id,
+    listing.id,
+    validImages
+  );
 
-    if (!uploadError) {
-      await supabase.from("listing_images").insert({
-        listing_id: listing.id,
-        storage_path: path,
-        sort_order: i,
-      });
-    }
+  if (uploadError) {
+    await supabase.from("listings").delete().eq("id", listing.id);
+    return { error: uploadError };
   }
 
   revalidatePath("/");
-  redirect(`/listings/${listing.id}`);
+  return { redirectTo: `/listings/${listing.id}` };
+}
+
+export async function createListingFromForm(
+  _prevState: ListingFormState,
+  formData: FormData
+): Promise<ListingFormState> {
+  return createListingInternal(formData);
+}
+
+export async function createListing(formData: FormData) {
+  const result = await createListingInternal(formData);
+  if (result.error) {
+    redirect(`/listings/new?error=${encodeURIComponent(result.error)}`);
+  }
+  redirect(result.redirectTo!);
 }
 
 function validateListingData(
@@ -242,7 +296,7 @@ export async function removeListing(listingId: string) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return { error: "Not authenticated." };
+  if (!user) redirect("/login");
 
   const { error } = await supabase
     .from("listings")
@@ -250,10 +304,14 @@ export async function removeListing(listingId: string) {
     .eq("id", listingId)
     .eq("seller_id", user.id);
 
-  if (error) return { error: error.message };
+  if (error) {
+    redirect(`/listings/${listingId}?error=${encodeURIComponent(error.message)}`);
+  }
 
   revalidatePath("/");
-  redirect(`/profile/${user.id}`);
+  revalidatePath(`/profile/${user.id}`);
+  revalidatePath("/profile/me");
+  redirect("/");
 }
 
 export async function logListingView(listingId: string) {

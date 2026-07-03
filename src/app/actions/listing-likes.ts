@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { isVerifiedBerkeleyUser } from "@/lib/supabase/auth-helpers";
+import { isAuthenticatedBerkeleyUser } from "@/lib/supabase/auth-helpers";
 
 export async function toggleListingLike(
   listingId: string
@@ -12,7 +12,7 @@ export async function toggleListingLike(
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user || !isVerifiedBerkeleyUser(user)) {
+  if (!user || !isAuthenticatedBerkeleyUser(user)) {
     return { liked: false, error: "Log in with your Berkeley account to save listings." };
   }
 

@@ -28,18 +28,26 @@ export async function Nav() {
     <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
       <div className="flex items-center justify-between px-4 py-3 sm:px-8">
         <CalketLogo height={52} rounded="rounded-2xl" />
-        <nav className="ml-auto flex shrink-0 items-center gap-3 text-sm">
+        <nav className="ml-auto flex shrink-0 items-center gap-4">
           {user ? (
             <>
-              <Link href="/" className="hover:underline">
-                Browse
-              </Link>
-              <Link href="/wanted" className="hover:underline">
-                Requests
-              </Link>
-              <Link href="/listings/new" className="hover:underline">
-                Sell
-              </Link>
+              <div className="flex items-center gap-4 text-lg font-semibold text-[#003262] dark:text-[#FDB515]">
+                <Link href="/" className="hover:underline">
+                  Browse
+                </Link>
+                <span className="font-normal text-zinc-300 dark:text-zinc-600" aria-hidden>
+                  |
+                </span>
+                <Link href="/wanted" className="hover:underline">
+                  Requests
+                </Link>
+                <span className="font-normal text-zinc-300 dark:text-zinc-600" aria-hidden>
+                  |
+                </span>
+                <Link href="/listings/new" className="hover:underline">
+                  Sell
+                </Link>
+              </div>
               <NavProfileMenu avatarUrl={avatarUrl} />
             </>
           ) : (

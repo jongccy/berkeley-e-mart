@@ -30,17 +30,7 @@ export function ListingCard({
     : null;
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-      {showLike && (
-        <ListingLikeButton
-          listingId={listing.id}
-          initialLiked={liked}
-          loggedIn={loggedIn}
-          loginRedirect="/"
-          size="sm"
-          className="absolute right-2 top-2 z-10"
-        />
-      )}
+    <div className="group flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
       <Link
         href={`/listings/${listing.id}`}
         className="flex flex-1 flex-col"
@@ -59,9 +49,6 @@ export function ListingCard({
               No image
             </div>
           )}
-          <span className="absolute left-2 top-2 rounded bg-[#003262] px-2 py-0.5 text-xs text-white">
-            {formatCategory(listing.category)}
-          </span>
         </div>
         <div className="flex flex-1 flex-col gap-1 p-3">
           <div className="flex items-start justify-between gap-2">
@@ -74,12 +61,26 @@ export function ListingCard({
               </span>
             )}
           </div>
-          <p className="text-lg font-semibold text-[#003262] dark:text-[#FDB515]">
-            {formatPrice(listing.price_cents)}
-          </p>
-          <p className="text-xs text-zinc-500">
-            {resolveSellerDisplayName(listing.profiles)}
-          </p>
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-lg font-semibold text-[#003262] dark:text-[#FDB515]">
+                {formatPrice(listing.price_cents)}
+              </p>
+              <p className="text-xs text-zinc-500">
+                {resolveSellerDisplayName(listing.profiles)}
+              </p>
+            </div>
+            {showLike && (
+              <ListingLikeButton
+                listingId={listing.id}
+                initialLiked={liked}
+                loggedIn={loggedIn}
+                loginRedirect="/"
+                size="sm"
+                variant="inline"
+              />
+            )}
+          </div>
           {listing.quality_rating != null && (
             <StarRating rating={listing.quality_rating} size="sm" />
           )}

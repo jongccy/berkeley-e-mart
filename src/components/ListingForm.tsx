@@ -9,7 +9,7 @@ import {
   OTHER_CATEGORY,
 } from "@/lib/constants";
 import {
-  createListing,
+  createListingFromForm,
   updateListingFromForm,
   type ListingFormState,
 } from "@/app/actions/listings";
@@ -20,21 +20,28 @@ import type { Listing } from "@/types/database";
 
 type Props = {
   listing?: Listing;
+  initialError?: string;
 };
 
-export function ListingForm({ listing }: Props) {
+export function ListingForm({ listing, initialError }: Props) {
   const isEdit = !!listing;
+  const [createState, createAction, createPending] = useActionState<
+    ListingFormState,
+    FormData
+  >(createListingFromForm, initialError ? { error: initialError } : {});
   const [editState, editAction, editPending] = useActionState<
     ListingFormState,
     FormData
   >(updateListingFromForm, {});
   const router = useRouter();
+  const formState = isEdit ? editState : createState;
+  const isPending = isEdit ? editPending : createPending;
 
   useEffect(() => {
-    if (editState.redirectTo) {
-      router.push(editState.redirectTo);
+    if (formState.redirectTo) {
+      router.push(formState.redirectTo);
     }
-  }, [editState.redirectTo, router]);
+  }, [formState.redirectTo, router]);
 
   const defaultCategory = listing?.category ?? OTHER_CATEGORY;
   const [category, setCategory] = useState(defaultCategory);
@@ -80,11 +87,11 @@ export function ListingForm({ listing }: Props) {
     }
   }
 
-  const formError = editState.error;
+  const formError = formState.error;
 
   return (
     <form
-      action={isEdit ? editAction : createListing}
+      action={isEdit ? editAction : createAction}
       className="mx-auto max-w-xl space-y-4"
       onSubmit={validateBeforeSubmit}
       onChange={() => setIsDirty(true)}
@@ -249,11 +256,13 @@ export function ListingForm({ listing }: Props) {
       <div className="space-y-3">
         <button
           type="submit"
-          disabled={isEdit && editPending}
+          disabled={isPending}
           className="w-full rounded-lg bg-[#003262] py-2.5 font-medium text-white hover:bg-[#002244] disabled:opacity-60"
         >
-          {editPending
-            ? "Saving..."
+          {isPending
+            ? isEdit
+              ? "Saving..."
+              : "Creating..."
             : listing
               ? "Save changes"
               : "Create listing"}

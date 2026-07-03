@@ -11,6 +11,7 @@ type Props = {
   loggedIn: boolean;
   loginRedirect?: string;
   size?: "sm" | "md";
+  variant?: "overlay" | "inline";
   className?: string;
 };
 
@@ -52,22 +53,47 @@ export function ListingLikeButton({
   loggedIn,
   loginRedirect,
   size = "md",
+  variant = "overlay",
   className = "",
 }: Props) {
   const router = useRouter();
   const [liked, setLiked] = useState(initialLiked);
   const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const sizeClass = size === "sm" ? "h-8 w-8" : "h-10 w-10";
-  const iconClass = size === "sm" ? "h-4 w-4" : "h-5 w-5";
-  const baseClass = `${sizeClass} flex items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur transition hover:bg-white dark:bg-zinc-900/90 dark:hover:bg-zinc-900`;
+  const sizeClass =
+    variant === "inline"
+      ? size === "sm"
+        ? "h-7 w-7"
+        : "h-8 w-8"
+      : size === "sm"
+        ? "h-8 w-8"
+        : "h-10 w-10";
+  const iconClass =
+    variant === "inline"
+      ? size === "sm"
+        ? "h-6 w-6"
+        : "h-7 w-7"
+      : size === "sm"
+        ? "h-4 w-4"
+        : "h-5 w-5";
+  const baseClass =
+    variant === "inline"
+      ? `${sizeClass} flex shrink-0 items-center justify-center transition`
+      : `${sizeClass} flex items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur transition hover:bg-white dark:bg-zinc-900/90 dark:hover:bg-zinc-900`;
+  const visibilityClass =
+    variant === "inline"
+      ? liked
+        ? "opacity-100"
+        : "pointer-events-none opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 [@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100"
+      : "";
 
   if (!loggedIn) {
     const redirect = loginRedirect ?? `/listings/${listingId}`;
     return (
       <Link
         href={`/login?redirect=${encodeURIComponent(redirect)}`}
-        className={`${baseClass} text-zinc-500 hover:text-red-500 ${className}`}
+        className={`${baseClass} ${visibilityClass} text-zinc-500 hover:text-red-500 ${className}`}
         aria-label="Log in to save listing"
         onClick={(e) => e.stopPropagation()}
       >
@@ -85,6 +111,7 @@ export function ListingLikeButton({
     if (pending) return;
 
     setPending(true);
+    setError(null);
     const nextLiked = !liked;
     setLiked(nextLiked);
 
@@ -93,6 +120,7 @@ export function ListingLikeButton({
 
     if (result.error) {
       setLiked(!nextLiked);
+      setError(result.error);
       return;
     }
 
@@ -101,19 +129,29 @@ export function ListingLikeButton({
   }
 
   return (
-    <button
-      type="button"
-      onClick={handleToggle}
-      disabled={pending}
-      className={`${baseClass} ${
-        liked ? "text-red-500" : "text-zinc-500 hover:text-red-500"
-      } disabled:opacity-50 ${className}`}
-      aria-label={liked ? "Remove from saved listings" : "Save listing"}
-      aria-pressed={liked}
-    >
-      <span className={iconClass}>
-        <HeartIcon filled={liked} />
-      </span>
-    </button>
+    <div className={`relative ${visibilityClass} ${className}`}>
+      <button
+        type="button"
+        onClick={handleToggle}
+        disabled={pending}
+        className={`${baseClass} ${
+          liked ? "text-red-500" : "text-zinc-500 hover:text-red-500"
+        } disabled:opacity-50`}
+        aria-label={liked ? "Remove from saved listings" : "Save listing"}
+        aria-pressed={liked}
+      >
+        <span className={iconClass}>
+          <HeartIcon filled={liked} />
+        </span>
+      </button>
+      {error && (
+        <p
+          role="alert"
+          className="absolute right-0 top-full z-20 mt-1 w-48 rounded-lg bg-red-50 px-2 py-1 text-xs text-red-800 shadow dark:bg-red-950 dark:text-red-200"
+        >
+          {error}
+        </p>
+      )}
+    </div>
   );
 }

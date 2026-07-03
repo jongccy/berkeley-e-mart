@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Nav } from "@/components/Nav";
+import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 import { VerifyBanner } from "@/components/VerifyBanner";
 import { SITE_NAME } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
@@ -41,9 +43,29 @@ export default async function RootLayout({
         <Nav />
         <VerifyBanner user={user} />
         <main className="flex-1">{children}</main>
-        <footer className="border-t border-zinc-200 py-6 text-center text-xs text-zinc-500 dark:border-zinc-800">
-          {SITE_NAME} — For verified UC Berkeley students only.
+        <footer className="space-y-2 bg-[#003262] py-6 text-center text-xs text-white/90">
+          <p>
+            {SITE_NAME} — Buy and Sell with verified Berkeley affiliates.
+          </p>
+          <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+            <Link
+              href="/terms"
+              className="text-[#FDB515] underline hover:text-[#ffe08a]"
+            >
+              Terms of Service
+            </Link>
+            <span className="text-white/50" aria-hidden>
+              ·
+            </span>
+            <Link
+              href="/privacy"
+              className="text-[#FDB515] underline hover:text-[#ffe08a]"
+            >
+              Privacy Policy
+            </Link>
+          </p>
         </footer>
+        <ScrollToTopButton />
       </body>
     </html>
   );

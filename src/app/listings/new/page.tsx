@@ -6,7 +6,12 @@ import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewListingPage() {
+export default async function NewListingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const params = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -17,10 +22,9 @@ export default async function NewListingPage() {
   if (!isVerifiedBerkeleyUser(user)) {
     return (
       <div className="mx-auto max-w-md px-4 py-12 text-center">
-        <h1 className="text-xl font-bold">Verify your email</h1>
+        <h1 className="text-xl font-bold">Berkeley account required</h1>
         <p className="mt-2 text-sm text-zinc-500">
-          Check your Berkeley inbox for the verification link before creating a
-          listing.
+          Sign in with your @berkeley.edu email to create listings.
         </p>
         <Link href="/profile/me" className="mt-4 inline-block text-[#003262] underline">
           Go to profile
@@ -32,7 +36,7 @@ export default async function NewListingPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold">Create listing</h1>
-      <ListingForm />
+      <ListingForm initialError={params.error} />
     </div>
   );
 }
