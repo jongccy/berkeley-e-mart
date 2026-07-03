@@ -173,17 +173,17 @@ export default async function BrowsePage({
             {sort !== "recent" && (
               <input type="hidden" name="sort" value={sort} />
             )}
-            <div className="flex overflow-hidden rounded-full bg-white shadow-lg">
+            <div className="flex items-center gap-2 rounded-full bg-white p-2 pl-5 shadow-lg">
               <input
                 name="q"
                 type="search"
                 placeholder="Search listings..."
                 defaultValue={params.q ?? ""}
-                className="min-w-0 flex-1 bg-transparent px-5 py-3 text-sm text-zinc-900 outline-none placeholder:text-zinc-400"
+                className="min-w-0 flex-1 bg-transparent py-2 text-sm text-zinc-900 outline-none placeholder:text-zinc-400"
               />
               <button
                 type="submit"
-                className="shrink-0 bg-[#003262] px-6 py-3.5 text-sm font-medium text-white transition hover:bg-[#002244] sm:px-8"
+                className="shrink-0 rounded-full bg-[#003262] px-8 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#002244]"
               >
                 Search
               </button>

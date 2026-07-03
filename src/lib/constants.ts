@@ -1,7 +1,7 @@
 export const BERKELEY_EMAIL_SUFFIX = "@berkeley.edu";
 
 export const SITE_NAME = "Calket";
-export const SITE_LOGO_PATH = "/calket-logo.png";
+export const SITE_LOGO_PATH = "/calket-logo-v2.png";
 
 export const HOUSING_CATEGORY = "housing";
 

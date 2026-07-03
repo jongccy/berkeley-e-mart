@@ -26,17 +26,17 @@ export function BrowseHero({ searchParams }: Props) {
           action="/browse"
           className="w-full max-w-3xl space-y-4 rounded-2xl border-2 border-[#003262] bg-white p-4 shadow-lg sm:p-5"
         >
-          <div className="flex overflow-hidden rounded-full border border-zinc-300 focus-within:border-[#FDB515] focus-within:ring-1 focus-within:ring-[#FDB515]">
+          <div className="flex items-center gap-2 rounded-full border border-zinc-300 bg-white p-2 pl-5 focus-within:border-[#FDB515] focus-within:ring-1 focus-within:ring-[#FDB515]">
             <input
               name="q"
               type="search"
               placeholder="Search listings..."
               defaultValue={searchParams.q ?? ""}
-              className="min-w-0 flex-1 bg-transparent px-5 py-3.5 text-sm text-zinc-900 outline-none placeholder:text-zinc-400"
+              className="min-w-0 flex-1 bg-transparent py-2 text-sm text-zinc-900 outline-none placeholder:text-zinc-400"
             />
             <button
               type="submit"
-              className="shrink-0 bg-[#003262] px-6 py-3.5 text-sm font-medium text-white transition hover:bg-[#002244] sm:px-8"
+              className="shrink-0 rounded-full bg-[#003262] px-8 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#002244]"
             >
               Browse
             </button>
