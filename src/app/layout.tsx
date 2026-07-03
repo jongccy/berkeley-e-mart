@@ -1,22 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Geist, Geist_Mono } from "next/font/google";
+import { GeistPixelSquare } from "geist/font/pixel";
 import { Nav } from "@/components/Nav";
 import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 import { VerifyBanner } from "@/components/VerifyBanner";
 import { SITE_NAME } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: SITE_NAME,
@@ -37,7 +27,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${GeistPixelSquare.variable} ${GeistPixelSquare.className} h-full antialiased`}
     >
       <body
         suppressHydrationWarning

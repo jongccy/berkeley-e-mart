@@ -1,8 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
 import { StarRating } from "@/components/StarRating";
 import { ListingTags } from "@/components/ListingTags";
 import { ListingLikeButton } from "@/components/ListingLikeButton";
+import { ListingCardImageCarousel } from "@/components/ListingCardImageCarousel";
 import { ListingStatusBadge } from "@/components/ListingStatusBadge";
 import { resolveSellerDisplayName } from "@/lib/profile-display";
 import type { ListingWithImages } from "@/types/database";
@@ -24,32 +24,26 @@ export function ListingCard({
   showLike = false,
   loggedIn = false,
 }: Props) {
-  const firstImage = listing.listing_images?.[0];
-  const imageUrl = firstImage
-    ? getPublicImageUrl(supabaseUrl, LISTING_IMAGE_BUCKET, firstImage.storage_path)
-    : null;
+  const listingHref = `/listings/${listing.id}`;
+  const cardImages = [...(listing.listing_images ?? [])]
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((image) => ({
+      id: image.id,
+      url: getPublicImageUrl(
+        supabaseUrl,
+        LISTING_IMAGE_BUCKET,
+        image.storage_path
+      ),
+    }));
 
   return (
     <div className="group flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-      <Link
-        href={`/listings/${listing.id}`}
-        className="flex flex-1 flex-col"
-      >
-        <div className="relative aspect-[4/3] bg-zinc-100 dark:bg-zinc-800">
-          {imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={listing.title}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 33vw"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-zinc-400">
-              No image
-            </div>
-          )}
-        </div>
+      <ListingCardImageCarousel
+        images={cardImages}
+        alt={listing.title}
+        href={listingHref}
+      />
+      <Link href={listingHref} className="flex flex-1 flex-col">
         <div className="flex flex-1 flex-col gap-1 p-3">
           <div className="flex items-start justify-between gap-2">
             <h3 className="line-clamp-2 min-w-0 flex-1 font-medium group-hover:underline">

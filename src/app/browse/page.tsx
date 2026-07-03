@@ -6,7 +6,7 @@ import { getLikedListingIds } from "@/lib/listing-likes";
 import { expireSoldListings } from "@/lib/expire-sold-listings";
 import { getSoldListingCutoffIso } from "@/lib/sold-listings";
 import { PROFILE_IDENTITY_SELECT } from "@/lib/profile-display";
-import { CATEGORIES, HOUSING_CATEGORY } from "@/lib/constants";
+import { CATEGORIES } from "@/lib/constants";
 import type { ListingWithImages } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -30,14 +30,6 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: "recent", label: "Most Recent" },
   { value: "price_asc", label: "Price: Low to High" },
   { value: "price_desc", label: "Price: High to Low" },
-];
-
-const QUICK_TABS: { value: string; label: string }[] = [
-  { value: "", label: "All" },
-  { value: "textbooks", label: "Textbooks" },
-  { value: "furniture", label: "Furniture" },
-  { value: "electronics", label: "Electronics" },
-  { value: HOUSING_CATEGORY, label: "Housing" },
 ];
 
 function toArray(value: string | string[] | undefined): string[] {
@@ -139,9 +131,6 @@ export default async function BrowsePage({
   const showLike = Boolean(user && isAuthenticatedBerkeleyUser(user));
   const resultCount = count ?? items.length;
 
-  const activeTab =
-    selectedCategories.length === 1 ? selectedCategories[0] : "";
-
   const fieldClass =
     "w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-[#FDB515] focus:ring-1 focus:ring-[#FDB515] dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100";
 
@@ -151,9 +140,6 @@ export default async function BrowsePage({
       <section className="bg-[#003262] px-4 py-10 sm:py-12">
         <div className="mx-auto max-w-6xl">
           <h1 className="text-3xl font-bold text-white sm:text-4xl">Browse Posts</h1>
-          <p className="mt-1 text-sm text-white/70">
-            Find what you need from fellow Bears
-          </p>
 
           <form method="get" action="/browse" className="mt-6 max-w-2xl">
             {/* preserve active filters when searching */}
@@ -192,32 +178,10 @@ export default async function BrowsePage({
         </div>
       </section>
 
-      {/* Tabs + sort */}
+      {/* Sort */}
       <div className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4">
-          <nav className="flex gap-6 overflow-x-auto">
-            {QUICK_TABS.map((tab) => {
-              const isActive = activeTab === tab.value;
-              return (
-                <Link
-                  key={tab.value || "all"}
-                  href={buildHref(params, {
-                    category: tab.value ? tab.value : undefined,
-                    limit: undefined,
-                  })}
-                  className={`whitespace-nowrap border-b-2 py-3 text-sm font-medium transition ${
-                    isActive
-                      ? "border-[#FDB515] text-[#003262] dark:text-[#FDB515]"
-                      : "border-transparent text-zinc-500 hover:text-[#003262] dark:hover:text-[#FDB515]"
-                  }`}
-                >
-                  {tab.label}
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className="hidden shrink-0 items-center gap-2 py-2 sm:flex">
+        <div className="mx-auto flex max-w-6xl justify-end px-4 py-2">
+          <div className="flex items-center gap-2">
             {SORT_OPTIONS.map((opt) => {
               const isActive = sort === opt.value;
               return (
