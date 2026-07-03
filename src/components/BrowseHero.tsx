@@ -23,7 +23,7 @@ export function BrowseHero({ searchParams }: Props) {
 
         <form
           method="get"
-          action="/"
+          action="/browse"
           className="w-full max-w-3xl space-y-4 rounded-2xl border-2 border-[#003262] bg-white p-4 shadow-lg sm:p-5"
         >
           <div className="flex overflow-hidden rounded-full border border-zinc-300 focus-within:border-[#FDB515] focus-within:ring-1 focus-within:ring-[#FDB515]">

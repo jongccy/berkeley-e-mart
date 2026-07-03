@@ -32,7 +32,7 @@ export async function Nav() {
           {user ? (
             <>
               <div className="flex items-center gap-4 text-lg font-semibold text-[#003262] dark:text-[#FDB515]">
-                <Link href="/" className="hover:underline">
+                <Link href="/browse" className="hover:underline">
                   Browse
                 </Link>
                 <span className="font-normal text-zinc-300 dark:text-zinc-600" aria-hidden>
