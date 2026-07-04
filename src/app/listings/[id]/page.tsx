@@ -5,8 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { MessageSellerButton } from "@/components/MessageSellerButton";
 import { logListingView, markListingSold, removeListing } from "@/app/actions/listings";
 import {
-  formatPrice,
   formatCategory,
+  formatListingPrice,
   getPublicImageUrl,
 } from "@/lib/format";
 import { HOUSING_CATEGORY, LISTING_IMAGE_BUCKET } from "@/lib/constants";
@@ -166,7 +166,7 @@ export default async function ListingDetailPage({
             </div>
           </div>
           <p className="text-2xl font-semibold text-[#003262] dark:text-[#FDB515]">
-            {formatPrice(item.price_cents)}
+            {formatListingPrice(item.price_cents, item.category)}
           </p>
           {item.quality_rating != null && (
             <StarRating rating={item.quality_rating} />
@@ -184,16 +184,16 @@ export default async function ListingDetailPage({
           <ListingTags tags={item.tags ?? []} />
 
           {item.category === HOUSING_CATEGORY && (
-            <dl className="grid grid-cols-2 gap-2 text-sm">
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-xl border border-zinc-200 p-4 text-sm dark:border-zinc-800">
               {item.address_area && (
                 <>
-                  <dt className="text-zinc-500">Area</dt>
+                  <dt className="text-zinc-500">Location</dt>
                   <dd>{item.address_area}</dd>
                 </>
               )}
               {item.bedrooms != null && (
                 <>
-                  <dt className="text-zinc-500">Bedrooms</dt>
+                  <dt className="text-zinc-500">Beds</dt>
                   <dd>{item.bedrooms}</dd>
                 </>
               )}
@@ -203,16 +203,24 @@ export default async function ListingDetailPage({
                   <dd>{item.bathrooms}</dd>
                 </>
               )}
-              {item.lease_start && (
+              {item.sqft != null && (
                 <>
-                  <dt className="text-zinc-500">Lease start</dt>
-                  <dd>{item.lease_start}</dd>
+                  <dt className="text-zinc-500">Sqft</dt>
+                  <dd>{item.sqft.toLocaleString()}</dd>
                 </>
               )}
-              {item.lease_end && (
+              {item.included_utilities && (
                 <>
-                  <dt className="text-zinc-500">Lease end</dt>
-                  <dd>{item.lease_end}</dd>
+                  <dt className="text-zinc-500">Included utilities</dt>
+                  <dd>{item.included_utilities}</dd>
+                </>
+              )}
+              {item.lease_start && item.lease_end && (
+                <>
+                  <dt className="text-zinc-500">Leasing</dt>
+                  <dd>
+                    {item.lease_start} → {item.lease_end}
+                  </dd>
                 </>
               )}
             </dl>
@@ -279,7 +287,7 @@ export default async function ListingDetailPage({
                 sellerId={item.seller_id}
                 user={user}
                 status={item.status}
-                priceLabel={formatPrice(item.price_cents)}
+                priceLabel={formatListingPrice(item.price_cents, item.category)}
                 existingConversationId={existingConversationId}
                 messagingBlocked={messagingBlocked}
               />

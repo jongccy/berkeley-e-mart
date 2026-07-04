@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isVerifiedBerkeleyUser } from "@/lib/supabase/auth-helpers";
 import { FREE_CATEGORY, HOUSING_CATEGORY, LISTING_IMAGE_BUCKET } from "@/lib/constants";
+import { validateExactHousingLocation } from "@/lib/housing-listing";
 import { normalizeListingTags } from "@/lib/tags";
 
 const PROFILE_SELLER_DISPLAY = {
@@ -25,7 +26,11 @@ function parseListingForm(formData: FormData) {
   const price_cents = priceRaw ? Math.round(parseFloat(priceRaw) * 100) : null;
   const resolvedPriceCents = Number.isFinite(price_cents) ? price_cents : null;
   const category =
-    resolvedPriceCents === 0 ? FREE_CATEGORY : categoryRaw;
+    categoryRaw === HOUSING_CATEGORY
+      ? HOUSING_CATEGORY
+      : resolvedPriceCents === 0
+        ? FREE_CATEGORY
+        : categoryRaw;
 
   const isHousing = category === HOUSING_CATEGORY;
   const address_area = String(formData.get("address_area") ?? "").trim() || null;
@@ -33,6 +38,9 @@ function parseListingForm(formData: FormData) {
   const bathroomsRaw = String(formData.get("bathrooms") ?? "").trim();
   const lease_start = String(formData.get("lease_start") ?? "").trim() || null;
   const lease_end = String(formData.get("lease_end") ?? "").trim() || null;
+  const sqftRaw = String(formData.get("sqft") ?? "").trim();
+  const included_utilities =
+    String(formData.get("included_utilities") ?? "").trim() || null;
   const qualityRaw = String(formData.get("quality_rating") ?? "").trim();
   const quality_rating = qualityRaw ? parseInt(qualityRaw, 10) : null;
   const tags = normalizeListingTags(
@@ -54,6 +62,11 @@ function parseListingForm(formData: FormData) {
     bathrooms: isHousing && bathroomsRaw ? parseFloat(bathroomsRaw) : null,
     lease_start: isHousing ? lease_start : null,
     lease_end: isHousing ? lease_end : null,
+    sqft:
+      isHousing && sqftRaw && Number.isFinite(parseInt(sqftRaw, 10))
+        ? parseInt(sqftRaw, 10)
+        : null,
+    included_utilities: isHousing ? included_utilities : null,
     ...PROFILE_SELLER_DISPLAY,
   };
 }
@@ -379,14 +392,24 @@ function validateListingData(
     return "Select a quality rating from 1 to 5 stars.";
   }
   if (data.category === HOUSING_CATEGORY) {
+    const locationError = validateExactHousingLocation(data.address_area ?? "");
+    if (locationError) return locationError;
+
     if (
-      !data.address_area ||
       data.bedrooms == null ||
       data.bathrooms == null ||
       !data.lease_start ||
       !data.lease_end
     ) {
-      return "All housing details are required for housing listings.";
+      return "Beds, bathrooms, monthly price, and lease dates are required for housing listings.";
+    }
+
+    if (data.price_cents == null || data.price_cents <= 0) {
+      return "Enter the monthly rent for housing listings.";
+    }
+
+    if (data.lease_end < data.lease_start) {
+      return "Lease end date must be on or after the start date.";
     }
   }
   return null;

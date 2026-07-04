@@ -17,6 +17,7 @@ import {
 import { ListingPhotoUpload, type ExistingListingPhoto } from "@/components/ListingPhotoUpload";
 import { ListingTagPicker } from "@/components/ListingTagPicker";
 import { QualityStars } from "@/components/QualityStars";
+import { validateExactHousingLocation } from "@/lib/housing-listing";
 import type { Listing } from "@/types/database";
 
 type Props = {
@@ -64,6 +65,7 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
     listing ? existingPhotos.length : 0
   );
   const [photoError, setPhotoError] = useState("");
+  const [housingLocationError, setHousingLocationError] = useState("");
   const [isDirty, setIsDirty] = useState(false);
   const isHousing = category === HOUSING_CATEGORY;
   const isFreeListing = category === FREE_CATEGORY;
@@ -79,7 +81,7 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
     setPrice(normalized);
 
     const parsed = parseFloat(normalized);
-    if (Number.isFinite(parsed) && parsed === 0) {
+    if (Number.isFinite(parsed) && parsed === 0 && !isHousing) {
       setCategory(FREE_CATEGORY);
     } else if (category === FREE_CATEGORY && parsed > 0) {
       setCategory(OTHER_CATEGORY);
@@ -91,6 +93,20 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
   function validateBeforeSubmit(event: React.FormEvent<HTMLFormElement>) {
     setQualityError("");
     setPhotoError("");
+    setHousingLocationError("");
+
+    if (isHousing) {
+      const form = event.currentTarget;
+      const location = String(
+        new FormData(form).get("address_area") ?? ""
+      ).trim();
+      const locationError = validateExactHousingLocation(location);
+      if (locationError) {
+        event.preventDefault();
+        setHousingLocationError(locationError);
+        return;
+      }
+    }
 
     if (qualityRating < 1 || qualityRating > 5) {
       event.preventDefault();
@@ -148,7 +164,7 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className={isHousing ? "" : "grid gap-4 sm:grid-cols-2"}>
         <div>
           <label className="mb-1 block text-sm font-medium">Category</label>
           <select
@@ -172,30 +188,160 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
               )}
           </select>
         </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Price</label>
-          <div className="relative">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
-              $
-            </span>
+        {!isHousing && (
+          <div>
+            <label className="mb-1 block text-sm font-medium">Price</label>
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
+                $
+              </span>
+              <input
+                name="price"
+                type="text"
+                inputMode="decimal"
+                required
+                value={price}
+                onChange={(e) => handlePriceChange(e.target.value)}
+                placeholder="0.00"
+                className="w-full rounded-lg border border-zinc-300 py-2 pl-7 pr-3 dark:border-zinc-700 dark:bg-zinc-950"
+              />
+            </div>
+            {isFreeListing && (
+              <p className="mt-1 text-xs text-zinc-500">
+                $0 listings are categorized as Free / Giveaway.
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {isHousing && (
+        <fieldset className="space-y-4 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+          <legend className="px-1 text-sm font-medium">
+            Housing / leasing details
+          </legend>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              Exact location
+            </label>
             <input
-              name="price"
-              type="text"
-              inputMode="decimal"
+              name="address_area"
               required
-              value={price}
-              onChange={(e) => handlePriceChange(e.target.value)}
-              placeholder="0.00"
-              className="w-full rounded-lg border border-zinc-300 py-2 pl-7 pr-3 dark:border-zinc-700 dark:bg-zinc-950"
+              defaultValue={listing?.address_area ?? ""}
+              className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+            />
+            <p className="mt-1 text-xs text-zinc-500">
+              Full street address required — not a neighborhood or general area.
+            </p>
+            {housingLocationError && (
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                {housingLocationError}
+              </p>
+            )}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-medium"># of beds</label>
+              <input
+                name="bedrooms"
+                type="number"
+                min="0"
+                required
+                defaultValue={listing?.bedrooms ?? ""}
+                className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">
+                # of bathrooms
+              </label>
+              <input
+                name="bathrooms"
+                type="number"
+                min="0"
+                step="0.5"
+                required
+                defaultValue={listing?.bathrooms ?? ""}
+                className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              Sqft <span className="font-normal text-zinc-500">(optional)</span>
+            </label>
+            <input
+              name="sqft"
+              type="number"
+              min="1"
+              defaultValue={listing?.sqft ?? ""}
+              className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
             />
           </div>
-          {isFreeListing && (
-            <p className="mt-1 text-xs text-zinc-500">
-              $0 listings are categorized as Free / Giveaway.
-            </p>
-          )}
-        </div>
-      </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              Included utilities{" "}
+              <span className="font-normal text-zinc-500">(optional)</span>
+            </label>
+            <input
+              name="included_utilities"
+              defaultValue={listing?.included_utilities ?? ""}
+              className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium">
+              Price ($/month)
+            </label>
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
+                $
+              </span>
+              <input
+                name="price"
+                type="text"
+                inputMode="decimal"
+                required
+                value={price}
+                onChange={(e) => handlePriceChange(e.target.value)}
+                className="w-full rounded-lg border border-zinc-300 py-2 pl-7 pr-3 dark:border-zinc-700 dark:bg-zinc-950"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium">Leasing</label>
+            <div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+              <div>
+                <span className="mb-1 block text-xs text-zinc-500">From</span>
+                <input
+                  name="lease_start"
+                  type="date"
+                  required
+                  defaultValue={listing?.lease_start ?? ""}
+                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+                />
+              </div>
+              <span className="hidden text-sm text-zinc-500 sm:block">→</span>
+              <div>
+                <span className="mb-1 block text-xs text-zinc-500">To</span>
+                <input
+                  name="lease_end"
+                  type="date"
+                  required
+                  defaultValue={listing?.lease_end ?? ""}
+                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+                />
+              </div>
+            </div>
+          </div>
+        </fieldset>
+      )}
 
       <div>
         <label className="mb-2 block text-sm font-medium">Quality</label>
@@ -217,58 +363,6 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
         initialTags={listing?.tags ?? []}
         onTagsChange={() => setIsDirty(true)}
       />
-
-      {isHousing && (
-        <fieldset className="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-          <legend className="px-1 text-sm font-medium">
-            Housing / leasing details
-          </legend>
-          <input
-            name="address_area"
-            required
-            placeholder="Neighborhood / area only"
-            defaultValue={listing?.address_area ?? ""}
-            className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-          />
-          <div className="grid gap-3 sm:grid-cols-2">
-            <input
-              name="bedrooms"
-              type="number"
-              min="0"
-              required
-              placeholder="Bedrooms"
-              defaultValue={listing?.bedrooms ?? ""}
-              className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-            />
-            <input
-              name="bathrooms"
-              type="number"
-              min="0"
-              step="0.5"
-              required
-              placeholder="Bathrooms"
-              defaultValue={listing?.bathrooms ?? ""}
-              className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-            />
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <input
-              name="lease_start"
-              type="date"
-              required
-              defaultValue={listing?.lease_start ?? ""}
-              className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-            />
-            <input
-              name="lease_end"
-              type="date"
-              required
-              defaultValue={listing?.lease_end ?? ""}
-              className="rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-            />
-          </div>
-        </fieldset>
-      )}
 
       <div>
         <ListingPhotoUpload

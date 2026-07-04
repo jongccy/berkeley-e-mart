@@ -1,4 +1,4 @@
-import { CATEGORIES } from "@/lib/constants";
+import { CATEGORIES, HOUSING_CATEGORY } from "@/lib/constants";
 
 export function formatPrice(cents: number | null): string {
   if (cents === null) return "Contact for price";
@@ -8,6 +8,17 @@ export function formatPrice(cents: number | null): string {
     currency: "USD",
     maximumFractionDigits: 0,
   }).format(cents / 100);
+}
+
+export function formatListingPrice(
+  cents: number | null,
+  category: string
+): string {
+  const base = formatPrice(cents);
+  if (category === HOUSING_CATEGORY && cents != null && cents > 0) {
+    return `${base}/mo`;
+  }
+  return base;
 }
 
 export function formatCategory(value: string): string {

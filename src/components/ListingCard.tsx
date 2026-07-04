@@ -7,7 +7,7 @@ import { ListingStatusBadge } from "@/components/ListingStatusBadge";
 import { DisplayNameWithBadge } from "@/components/DisplayNameWithBadge";
 import { resolveSellerDisplayName, profileIsVerified } from "@/lib/profile-display";
 import type { ListingWithImages } from "@/types/database";
-import { formatPrice, formatCategory, getPublicImageUrl } from "@/lib/format";
+import { formatCategory, formatListingPrice, getPublicImageUrl } from "@/lib/format";
 import { LISTING_IMAGE_BUCKET } from "@/lib/constants";
 
 type Props = {
@@ -59,7 +59,7 @@ export function ListingCard({
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
               <p className="text-lg font-semibold text-[#003262] dark:text-[#FDB515]">
-                {formatPrice(listing.price_cents)}
+                {formatListingPrice(listing.price_cents, listing.category)}
               </p>
               <p className="text-xs text-zinc-500">
                 <DisplayNameWithBadge

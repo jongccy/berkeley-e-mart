@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { markConversationRead } from "@/lib/inbox-unread";
 import { ChatThread } from "@/components/ChatThread";
+import { MarkConversationRead } from "@/components/MarkConversationRead";
 import { ReportButton } from "@/components/ReportButton";
 import { BlockUserButton } from "@/components/BlockUserButton";
 import { DisplayNameWithBadge } from "@/components/DisplayNameWithBadge";
@@ -56,9 +55,6 @@ export default async function ConversationPage({
     .single();
 
   if (!conversation) notFound();
-
-  await markConversationRead(supabase, user.id, conversationId);
-  revalidatePath("/", "layout");
 
   const { data: messages } = await supabase
     .from("messages")
@@ -135,6 +131,7 @@ export default async function ConversationPage({
 
   return (
     <div className="mx-auto max-w-2xl space-y-4 px-4 py-8">
+      <MarkConversationRead conversationId={conversationId} />
       <div className="flex items-center justify-between gap-3">
         <Link href="/inbox" className="text-sm text-[#003262] underline">
           ← Back to inbox

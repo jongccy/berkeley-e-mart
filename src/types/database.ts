@@ -28,6 +28,8 @@ export type Listing = {
   bathrooms: number | null;
   lease_start: string | null;
   lease_end: string | null;
+  sqft: number | null;
+  included_utilities: string | null;
   seller_display_mode: SellerDisplayMode;
   seller_display_name: string | null;
   quality_rating: number | null;
