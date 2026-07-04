@@ -5,6 +5,8 @@ export const SITE_LOGO_PATH = "/calket-logo-v2.png";
 
 export const HOUSING_CATEGORY = "housing";
 
+export const FREE_CATEGORY = "free";
+
 export const OTHER_CATEGORY = "other";
 
 export const DEFAULT_CATEGORY_LABEL = "Others";

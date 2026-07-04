@@ -3,12 +3,16 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { closeWantedPost } from "@/app/actions/wanted";
 import { MessageRequesterButton } from "@/components/MessageRequesterButton";
+import { DisplayNameWithBadge } from "@/components/DisplayNameWithBadge";
+import { BlockUserButton } from "@/components/BlockUserButton";
 import { formatPrice, formatCategory } from "@/lib/format";
 import {
   PROFILE_IDENTITY_SELECT,
   resolvePublicName,
+  profileIsVerified,
   sellerProfileIsPublic,
 } from "@/lib/profile-display";
+import { usersAreBlocked, viewerHasBlockedUser } from "@/lib/user-blocks";
 
 export const dynamic = "force-dynamic";
 
@@ -36,9 +40,19 @@ export default async function WantedDetailPage({
     display_name: string | null;
     show_real_name: boolean;
     marketplace_alias: string | null;
+    is_verified_berkeley: boolean;
   };
   const isOwner = user?.id === post.user_id;
   const requesterName = resolvePublicName(profile);
+  const requesterVerified = profileIsVerified(profile);
+  const messagingBlocked =
+    user && !isOwner
+      ? await usersAreBlocked(supabase, user.id, post.user_id)
+      : false;
+  const hasBlockedRequester =
+    user && !isOwner
+      ? await viewerHasBlockedUser(supabase, user.id, post.user_id)
+      : false;
   const showRequesterProfile = sellerProfileIsPublic(profile) && !isOwner;
 
   return (
@@ -81,10 +95,27 @@ export default async function WantedDetailPage({
                 href={`/profile/${profile.id}`}
                 className="mt-1 block text-lg font-medium hover:underline"
               >
-                {requesterName}
+                <DisplayNameWithBadge
+                  name={requesterName}
+                  verified={requesterVerified}
+                />
               </Link>
             ) : (
-              <p className="mt-1 text-lg font-medium">{requesterName}</p>
+              <p className="mt-1 text-lg font-medium">
+                <DisplayNameWithBadge
+                  name={requesterName}
+                  verified={requesterVerified}
+                />
+              </p>
+            )}
+
+            {user && !isOwner && (
+              <div className="mt-3">
+                <BlockUserButton
+                  blockedUserId={post.user_id}
+                  initialBlocked={hasBlockedRequester}
+                />
+              </div>
             )}
 
             {post.status === "open" && (
@@ -93,6 +124,7 @@ export default async function WantedDetailPage({
                   wantedPostId={post.id}
                   requesterId={post.user_id}
                   user={user}
+                  messagingBlocked={messagingBlocked}
                 />
               </div>
             )}

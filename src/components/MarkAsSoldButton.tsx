@@ -4,19 +4,25 @@ import { useState } from "react";
 
 type Props = {
   action: () => Promise<void>;
+  variant?: "default" | "inline";
 };
 
-export function MarkAsSoldButton({ action }: Props) {
+export function MarkAsSoldButton({ action, variant = "default" }: Props) {
   const [open, setOpen] = useState(false);
+
+  const triggerClassName =
+    variant === "inline"
+      ? "text-sm font-medium text-[#003262] underline hover:text-[#002244] dark:text-[#FDB515]"
+      : "rounded-lg bg-[#FDB515] px-4 py-2 text-sm font-medium text-[#003262]";
 
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-lg bg-[#FDB515] px-4 py-2 text-sm font-medium text-[#003262]"
+        className={triggerClassName}
       >
-        Mark as sold
+        Mark sold
       </button>
 
       {open && (

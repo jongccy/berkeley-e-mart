@@ -4,7 +4,8 @@ import { ListingTags } from "@/components/ListingTags";
 import { ListingLikeButton } from "@/components/ListingLikeButton";
 import { ListingCardImageCarousel } from "@/components/ListingCardImageCarousel";
 import { ListingStatusBadge } from "@/components/ListingStatusBadge";
-import { resolveSellerDisplayName } from "@/lib/profile-display";
+import { DisplayNameWithBadge } from "@/components/DisplayNameWithBadge";
+import { resolveSellerDisplayName, profileIsVerified } from "@/lib/profile-display";
 import type { ListingWithImages } from "@/types/database";
 import { formatPrice, formatCategory, getPublicImageUrl } from "@/lib/format";
 import { LISTING_IMAGE_BUCKET } from "@/lib/constants";
@@ -61,7 +62,10 @@ export function ListingCard({
                 {formatPrice(listing.price_cents)}
               </p>
               <p className="text-xs text-zinc-500">
-                {resolveSellerDisplayName(listing.profiles)}
+                <DisplayNameWithBadge
+                  name={resolveSellerDisplayName(listing.profiles)}
+                  verified={profileIsVerified(listing.profiles)}
+                />
               </p>
             </div>
             {showLike && (

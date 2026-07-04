@@ -7,9 +7,13 @@ import { ProfileAvatar } from "@/components/ProfileAvatar";
 
 type Props = {
   avatarUrl: string | null;
+  unreadInboxCount?: number;
 };
 
-export function NavProfileMenu({ avatarUrl }: Props) {
+export function NavProfileMenu({
+  avatarUrl,
+  unreadInboxCount = 0,
+}: Props) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -67,9 +71,14 @@ export function NavProfileMenu({ avatarUrl }: Props) {
             href="/inbox"
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-900"
+            className="flex items-center justify-between gap-3 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-900"
           >
-            Inbox
+            <span>Inbox</span>
+            {unreadInboxCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#003262] px-1.5 text-[11px] font-semibold text-white">
+                {unreadInboxCount > 99 ? "99+" : unreadInboxCount}
+              </span>
+            )}
           </Link>
           <form action={signOut}>
             <button

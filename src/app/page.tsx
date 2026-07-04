@@ -7,6 +7,7 @@ import { isAuthenticatedBerkeleyUser, isVerifiedBerkeleyUser } from "@/lib/supab
 import { getLikedListingIds } from "@/lib/listing-likes";
 import { expireSoldListings } from "@/lib/expire-sold-listings";
 import { getSoldListingCutoffIso } from "@/lib/sold-listings";
+import { applyListingCategoryFilter } from "@/lib/listing-filters";
 import { PROFILE_IDENTITY_SELECT } from "@/lib/profile-display";
 import type { ListingWithImages } from "@/types/database";
 
@@ -66,7 +67,9 @@ export default async function HomePage({
     .order("created_at", { ascending: false })
     .limit(displayLimit + 1);
 
-  if (params.category) query = query.eq("category", params.category);
+  if (params.category) {
+    query = applyListingCategoryFilter(query, [params.category]);
+  }
   if (params.q) {
     query = query.or(
       `title.ilike.%${params.q}%,description.ilike.%${params.q}%`

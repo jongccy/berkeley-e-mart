@@ -1,18 +1,21 @@
 import Link from "next/link";
 import { startWantedConversation } from "@/app/actions/chat";
 import { isVerifiedBerkeleyUser } from "@/lib/supabase/auth-helpers";
+import { BLOCKED_MESSAGING_MESSAGE } from "@/lib/user-blocks";
 import type { User } from "@supabase/supabase-js";
 
 type Props = {
   wantedPostId: string;
   requesterId: string;
   user: User | null;
+  messagingBlocked?: boolean;
 };
 
 export function MessageRequesterButton({
   wantedPostId,
   requesterId,
   user,
+  messagingBlocked = false,
 }: Props) {
   if (!user) {
     return (
@@ -36,6 +39,12 @@ export function MessageRequesterButton({
       <p className="text-sm text-amber-700 dark:text-amber-300">
         Verify your Berkeley email to message the requester.
       </p>
+    );
+  }
+
+  if (messagingBlocked) {
+    return (
+      <p className="text-sm text-zinc-500">{BLOCKED_MESSAGING_MESSAGE}</p>
     );
   }
 

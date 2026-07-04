@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice, formatCategory } from "@/lib/format";
+import { DisplayNameWithBadge } from "@/components/DisplayNameWithBadge";
 import {
   PROFILE_IDENTITY_SELECT,
   resolvePublicName,
+  profileIsVerified,
 } from "@/lib/profile-display";
+import { getBlockRelatedUserIds } from "@/lib/user-blocks";
 import type { WantedPost } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +18,7 @@ type WantedPostWithProfile = WantedPost & {
     display_name: string | null;
     show_real_name: boolean;
     marketplace_alias: string | null;
+    is_verified_berkeley: boolean;
   } | null;
 };
 
@@ -50,7 +54,11 @@ function WantedPostList({
               <h2 className="mt-1 font-medium">{post.title}</h2>
               {showRequester && (
                 <p className="mt-1 text-sm text-zinc-500">
-                  Posted by {requesterName}
+                  Posted by{" "}
+                  <DisplayNameWithBadge
+                    name={requesterName}
+                    verified={profileIsVerified(post.profiles)}
+                  />
                 </p>
               )}
               <p className="line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">
@@ -81,12 +89,18 @@ export default async function WantedPage() {
     .limit(100);
 
   const items = (posts ?? []) as WantedPostWithProfile[];
+  const blockRelatedUserIds = user
+    ? await getBlockRelatedUserIds(supabase)
+    : new Set<string>();
+  const visibleItems = items.filter(
+    (post) => !blockRelatedUserIds.has(post.user_id)
+  );
   const myRequests = user
-    ? items.filter((post) => post.user_id === user.id)
+    ? visibleItems.filter((post) => post.user_id === user.id)
     : [];
   const otherRequests = user
-    ? items.filter((post) => post.user_id !== user.id)
-    : items;
+    ? visibleItems.filter((post) => post.user_id !== user.id)
+    : visibleItems;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">

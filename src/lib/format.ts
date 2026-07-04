@@ -2,6 +2,7 @@ import { CATEGORIES } from "@/lib/constants";
 
 export function formatPrice(cents: number | null): string {
   if (cents === null) return "Contact for price";
+  if (cents === 0) return "Free";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",

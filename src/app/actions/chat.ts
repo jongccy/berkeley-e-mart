@@ -2,9 +2,22 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { tryNotifyNewMessageRecipient } from "@/lib/email/new-message";
 import { createClient } from "@/lib/supabase/server";
 import { isVerifiedBerkeleyUser } from "@/lib/supabase/auth-helpers";
+import { usersAreBlocked, BLOCKED_MESSAGING_MESSAGE } from "@/lib/user-blocks";
 import type { Message } from "@/types/database";
+
+async function assertCanMessageUsers(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  otherUserId: string
+): Promise<string | null> {
+  if (await usersAreBlocked(supabase, userId, otherUserId)) {
+    return BLOCKED_MESSAGING_MESSAGE;
+  }
+  return null;
+}
 
 export async function startConversation(listingId: string) {
   const supabase = await createClient();
@@ -29,6 +42,13 @@ export async function startConversation(listingId: string) {
   if (listing.seller_id === user.id) {
     return { error: "You cannot message yourself." };
   }
+
+  const blockError = await assertCanMessageUsers(
+    supabase,
+    user.id,
+    listing.seller_id
+  );
+  if (blockError) return { error: blockError };
 
   const { data: existing } = await supabase
     .from("conversations")
@@ -82,6 +102,9 @@ export async function startWantedConversation(wantedPostId: string) {
   if (post.user_id === user.id) {
     return { error: "You cannot message yourself." };
   }
+
+  const blockError = await assertCanMessageUsers(supabase, user.id, post.user_id);
+  if (blockError) return { error: blockError };
 
   const { data: existing } = await supabase
     .from("conversations")
@@ -144,6 +167,13 @@ export async function startListingConversation(
     return { error: "You cannot message yourself." };
   }
 
+  const blockError = await assertCanMessageUsers(
+    supabase,
+    user.id,
+    listing.seller_id
+  );
+  if (blockError) return { error: blockError };
+
   let conversationId: string | null = null;
 
   const { data: existing } = await supabase
@@ -199,6 +229,12 @@ export async function startListingConversation(
     return { error: messageError?.message ?? "Could not send message." };
   }
 
+  await tryNotifyNewMessageRecipient({
+    conversationId,
+    senderId: user.id,
+    messageBody: message,
+  });
+
   revalidatePath("/inbox");
   revalidatePath(`/inbox/${conversationId}`);
 
@@ -221,6 +257,28 @@ export async function sendMessage(
     return { error: "Verify your Berkeley email to send messages." };
   }
 
+  const { data: conversation, error: conversationError } = await supabase
+    .from("conversations")
+    .select("buyer_id, seller_id")
+    .eq("id", conversationId)
+    .single();
+
+  if (conversationError || !conversation) {
+    return { error: "Conversation not found." };
+  }
+
+  const otherUserId =
+    conversation.buyer_id === user.id
+      ? conversation.seller_id
+      : conversation.buyer_id;
+
+  const blockError = await assertCanMessageUsers(
+    supabase,
+    user.id,
+    otherUserId
+  );
+  if (blockError) return { error: blockError };
+
   const { data, error } = await supabase
     .from("messages")
     .insert({
@@ -233,8 +291,15 @@ export async function sendMessage(
 
   if (error || !data) return { error: error?.message ?? "Could not send message." };
 
+  await tryNotifyNewMessageRecipient({
+    conversationId,
+    senderId: user.id,
+    messageBody: text,
+  });
+
   revalidatePath("/inbox");
   revalidatePath(`/inbox/${conversationId}`);
+  revalidatePath("/", "layout");
 
   return { message: data as Message };
 }

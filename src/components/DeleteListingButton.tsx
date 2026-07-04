@@ -4,17 +4,23 @@ import { useState } from "react";
 
 type Props = {
   action: () => Promise<void>;
+  variant?: "default" | "inline";
 };
 
-export function DeleteListingButton({ action }: Props) {
+export function DeleteListingButton({ action, variant = "default" }: Props) {
   const [open, setOpen] = useState(false);
+
+  const triggerClassName =
+    variant === "inline"
+      ? "text-sm font-medium text-red-700 underline hover:text-red-800 dark:text-red-400"
+      : "rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950";
 
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950"
+        className={triggerClassName}
       >
         Delete
       </button>

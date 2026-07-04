@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ListingCard } from "@/components/ListingCard";
 import { ProfileAvatar } from "@/components/ProfileAvatar";
-import { resolvePublicName } from "@/lib/profile-display";
+import { DisplayNameWithBadge } from "@/components/DisplayNameWithBadge";
+import { BlockUserButton } from "@/components/BlockUserButton";
+import { resolvePublicName, profileIsVerified } from "@/lib/profile-display";
+import { viewerHasBlockedUser } from "@/lib/user-blocks";
 import {
   countArchivedSoldListings,
   expireSoldListings,
@@ -60,13 +63,22 @@ export default async function ProfilePage({
 
   const archivedSoldCount = await countArchivedSoldListings(supabase, id);
   const isOwnProfile = user?.id === id;
+  const hasBlockedUser =
+    user && !isOwnProfile
+      ? await viewerHasBlockedUser(supabase, user.id, id)
+      : false;
   const publicName = resolvePublicName(profile as Profile);
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
       <div className="flex flex-col items-center gap-2">
         <ProfileAvatar avatarUrl={profile.avatar_url} alt={publicName} />
-        <h1 className="text-xl font-bold">{publicName}</h1>
+        <h1 className="text-xl font-bold">
+          <DisplayNameWithBadge
+            name={publicName}
+            verified={profileIsVerified(profile as Profile)}
+          />
+        </h1>
         {isOwnProfile && (
           <Link
             href="/profile/me"
@@ -75,12 +87,21 @@ export default async function ProfilePage({
             Edit profile
           </Link>
         )}
+        {user && !isOwnProfile && (
+          <BlockUserButton
+            blockedUserId={id}
+            initialBlocked={hasBlockedUser}
+          />
+        )}
       </div>
 
       <section className="rounded-xl bg-zinc-100 p-5 dark:bg-zinc-900">
         <h2 className="text-sm font-semibold">ID</h2>
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
-          {publicName}
+          <DisplayNameWithBadge
+            name={publicName}
+            verified={profileIsVerified(profile as Profile)}
+          />
         </p>
       </section>
 

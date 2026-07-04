@@ -5,6 +5,7 @@ import { uploadAvatar } from "@/app/actions/profile";
 import { signOut } from "@/app/actions/auth";
 import { isAuthenticatedBerkeleyUser, isVerifiedBerkeleyUser } from "@/lib/supabase/auth-helpers";
 import { ListingCard } from "@/components/ListingCard";
+import { MyListingDashboard } from "@/components/MyListingDashboard";
 import { AvatarUpload } from "@/components/AvatarUpload";
 import { ProfileSettingsForm } from "@/components/ProfileSettingsForm";
 import {
@@ -12,6 +13,9 @@ import {
   expireSoldListings,
 } from "@/lib/expire-sold-listings";
 import { formatArchivedSoldCount, getSoldListingCutoffIso } from "@/lib/sold-listings";
+import { getMyListingViewCounts } from "@/lib/listing-view-counts";
+import { getPublicImageUrl } from "@/lib/format";
+import { LISTING_IMAGE_BUCKET } from "@/lib/constants";
 import type { ListingWithImages, Profile } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -51,6 +55,29 @@ export default async function MyProfilePage({
     .eq("status", "active")
     .order("created_at", { ascending: false });
   const activeItems = (listings ?? []) as ListingWithImages[];
+
+  const viewCounts = await getMyListingViewCounts(
+    supabase,
+    activeItems.map((listing) => listing.id)
+  );
+
+  const dashboardItems = activeItems.map((listing) => {
+    const images = [...(listing.listing_images ?? [])].sort(
+      (a, b) => a.sort_order - b.sort_order
+    );
+    const firstImage = images[0];
+
+    return {
+      id: listing.id,
+      title: listing.title,
+      priceCents: listing.price_cents,
+      status: listing.status,
+      imageUrl: firstImage
+        ? getPublicImageUrl(supabaseUrl, LISTING_IMAGE_BUCKET, firstImage.storage_path)
+        : null,
+      viewCount: viewCounts.get(listing.id) ?? 0,
+    };
+  });
 
   const { data: recentSoldListings } = await supabase
     .from("listings")
@@ -108,9 +135,15 @@ export default async function MyProfilePage({
       />
 
       <section className="rounded-xl bg-zinc-100 p-5 dark:bg-zinc-900">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">History</h2>
-          <div className="flex gap-3 text-sm">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold">My listings</h2>
+          <div className="flex items-center gap-3 text-sm">
+            <Link
+              href="/listings/new"
+              className="font-medium text-[#003262] underline dark:text-[#FDB515]"
+            >
+              + New
+            </Link>
             <Link
               href="/profile/me"
               className={
@@ -154,18 +187,8 @@ export default async function MyProfilePage({
               </p>
             )}
           </>
-        ) : activeItems.length === 0 ? (
-          <p className="mt-3 text-sm text-zinc-500">No active listings yet.</p>
         ) : (
-          <div className="mt-3 grid gap-4 sm:grid-cols-2">
-            {activeItems.map((listing) => (
-              <ListingCard
-                key={listing.id}
-                listing={listing}
-                supabaseUrl={supabaseUrl}
-              />
-            ))}
-          </div>
+          <MyListingDashboard listings={dashboardItems} />
         )}
       </section>
 

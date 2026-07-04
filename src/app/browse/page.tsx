@@ -7,6 +7,7 @@ import { expireSoldListings } from "@/lib/expire-sold-listings";
 import { getSoldListingCutoffIso } from "@/lib/sold-listings";
 import { PROFILE_IDENTITY_SELECT } from "@/lib/profile-display";
 import { CATEGORIES } from "@/lib/constants";
+import { applyListingCategoryFilter } from "@/lib/listing-filters";
 import type { ListingWithImages } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -104,10 +105,8 @@ export default async function BrowsePage({
     query = query.order("created_at", { ascending: false });
   }
 
-  if (selectedCategories.length === 1) {
-    query = query.eq("category", selectedCategories[0]);
-  } else if (selectedCategories.length > 1) {
-    query = query.in("category", selectedCategories);
+  if (selectedCategories.length > 0) {
+    query = applyListingCategoryFilter(query, selectedCategories);
   }
   if (params.q) {
     query = query.or(`title.ilike.%${params.q}%,description.ilike.%${params.q}%`);

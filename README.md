@@ -107,7 +107,9 @@ Open [http://localhost:3000](http://localhost:3000).
 1. Push the repo to GitHub.
 2. Import the project in [Vercel](https://vercel.com).
 3. Add the same environment variables (use your production URL for `NEXT_PUBLIC_SITE_URL`).
-4. In Supabase Auth settings, add your Vercel URL to redirect URLs.
+4. Add **`CRON_SECRET`** (random string) and **`SUPABASE_SERVICE_ROLE_KEY`** — required for the hourly job that archives sold listings after 24 hours (`/api/cron/expire-sold-listings`). Vercel Cron sends `Authorization: Bearer <CRON_SECRET>` automatically.
+5. **Email notifications (optional):** add **`RESEND_API_KEY`** and **`EMAIL_FROM`** (a verified sender in Resend, e.g. `Calket <notifications@yourdomain.com>`). Without these, messaging still works; recipients just won't get "new message" emails.
+6. In Supabase Auth settings, add your Vercel URL to redirect URLs.
 
 ## Smoke test checklist
 

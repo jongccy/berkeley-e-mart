@@ -2,15 +2,19 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { formatRelativeTime } from "@/lib/format";
+import { isMessageUnread } from "@/lib/inbox-unread";
 import { ListingStatusBadge } from "@/components/ListingStatusBadge";
 import { ListingThumbnail } from "@/components/ListingThumbnail";
+import { DisplayNameWithBadge } from "@/components/DisplayNameWithBadge";
 import { getListingHeaderImageUrl } from "@/components/ConversationListingHeader";
 import { resolveChatListingStatus } from "@/lib/sold-listings";
 import {
   PROFILE_IDENTITY_SELECT,
   resolvePublicName,
   resolveSellerDisplayName,
+  profileIsVerified,
 } from "@/lib/profile-display";
+import { getBlockRelatedUserIds } from "@/lib/user-blocks";
 import type { ListingStatus } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -41,7 +45,7 @@ export default async function InboxPage() {
   const conversationIds = conversations?.map((c) => c.id) ?? [];
   const lastMessageByConversation = new Map<
     string,
-    { body: string; sender_id: string }
+    { body: string; sender_id: string; created_at: string }
   >();
 
   if (conversationIds.length > 0) {
@@ -58,16 +62,39 @@ export default async function InboxPage() {
     }
   }
 
+  const { data: readRows } =
+    conversationIds.length > 0
+      ? await supabase
+          .from("conversation_reads")
+          .select("conversation_id, last_read_at")
+          .eq("user_id", user.id)
+          .in("conversation_id", conversationIds)
+      : { data: [] };
+
+  const lastReadByConversation = new Map(
+    (readRows ?? []).map((row) => [row.conversation_id, row.last_read_at])
+  );
+
+  const blockRelatedUserIds = await getBlockRelatedUserIds(supabase);
+  const visibleConversations = (conversations ?? []).filter((conversation) => {
+    const buyerRaw = conversation.buyer as { id: string } | { id: string }[];
+    const sellerRaw = conversation.seller as { id: string } | { id: string }[];
+    const buyer = Array.isArray(buyerRaw) ? buyerRaw[0] : buyerRaw;
+    const seller = Array.isArray(sellerRaw) ? sellerRaw[0] : sellerRaw;
+    const otherId = buyer.id === user.id ? seller.id : buyer.id;
+    return !blockRelatedUserIds.has(otherId);
+  });
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold">Inbox</h1>
-      {!conversations?.length ? (
+      {!visibleConversations.length ? (
         <p className="text-zinc-500">
           No conversations yet. Message someone from a listing or request page.
         </p>
       ) : (
         <ul className="divide-y divide-zinc-200 rounded-xl border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
-          {conversations.map((c) => {
+          {visibleConversations.map((c) => {
             const listingRaw = c.listings as
               | {
                   id: string;
@@ -95,12 +122,14 @@ export default async function InboxPage() {
                   display_name: string | null;
                   show_real_name: boolean;
                   marketplace_alias: string | null;
+                  is_verified_berkeley: boolean;
                 }
               | {
                   id: string;
                   display_name: string | null;
                   show_real_name: boolean;
                   marketplace_alias: string | null;
+                  is_verified_berkeley: boolean;
                 }[];
             const buyer = Array.isArray(buyerRaw) ? buyerRaw[0] : buyerRaw;
             const sellerRaw = c.seller as
@@ -109,18 +138,21 @@ export default async function InboxPage() {
                   display_name: string | null;
                   show_real_name: boolean;
                   marketplace_alias: string | null;
+                  is_verified_berkeley: boolean;
                 }
               | {
                   id: string;
                   display_name: string | null;
                   show_real_name: boolean;
                   marketplace_alias: string | null;
+                  is_verified_berkeley: boolean;
                 }[];
             const seller = Array.isArray(sellerRaw) ? sellerRaw[0] : sellerRaw;
             const isBuyer = buyer.id === user.id;
             const otherName = isBuyer
               ? resolveSellerDisplayName(seller)
               : resolvePublicName(buyer);
+            const otherVerified = profileIsVerified(isBuyer ? seller : buyer);
             const threadTitle = listing?.title ?? "Conversation";
             const listingStatus = listing
               ? resolveChatListingStatus(listing.status, listing.sold_at)
@@ -129,11 +161,18 @@ export default async function InboxPage() {
               ? getListingHeaderImageUrl(supabaseUrl, listing.listing_images)
               : null;
             const lastMessage = lastMessageByConversation.get(c.id);
+            const unread = isMessageUnread(
+              lastMessage,
+              user.id,
+              lastReadByConversation.get(c.id)
+            );
 
             return (
               <li
                 key={c.id}
-                className="flex items-start gap-3 px-4 py-4 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                className={`flex items-start gap-3 px-4 py-4 hover:bg-zinc-50 dark:hover:bg-zinc-900 ${
+                  unread ? "bg-[#003262]/5" : ""
+                }`}
               >
                 {listing ? (
                   <Link
@@ -151,12 +190,25 @@ export default async function InboxPage() {
                 <div className="min-w-0 flex-1">
                   <Link href={`/inbox/${c.id}`} className="block">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium">{threadTitle}</p>
+                      <p
+                        className={`font-medium ${unread ? "text-[#003262]" : ""}`}
+                      >
+                        {threadTitle}
+                      </p>
+                      {unread && (
+                        <span className="h-2 w-2 rounded-full bg-[#003262]" aria-hidden />
+                      )}
                       {listingStatus && (
                         <ListingStatusBadge status={listingStatus} />
                       )}
                     </div>
-                    <p className="text-sm text-zinc-500">with {otherName}</p>
+                    <p className="text-sm text-zinc-500">
+                      with{" "}
+                      <DisplayNameWithBadge
+                        name={otherName}
+                        verified={otherVerified}
+                      />
+                    </p>
                     {lastMessage ? (
                       <p className="mt-1 truncate text-sm text-zinc-600 dark:text-zinc-400">
                         {lastMessage.sender_id === user.id ? "You: " : ""}

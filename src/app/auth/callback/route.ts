@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isBerkeleyEmail, TERMS_ACKNOWLEDGED_COOKIE } from "@/lib/auth";
+import { isVerifiedBerkeleyUser } from "@/lib/supabase/auth-helpers";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -49,11 +50,13 @@ export async function GET(request: Request) {
     id: string;
     display_name: string;
     avatar_url: string | null;
+    is_verified_berkeley: boolean;
     terms_accepted_at?: string;
   } = {
     id: user.id,
     display_name: displayName,
     avatar_url: user.user_metadata?.avatar_url ?? null,
+    is_verified_berkeley: isVerifiedBerkeleyUser(user),
   };
 
   if (termsAcknowledged) {

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { startListingConversation } from "@/app/actions/chat";
 import { isVerifiedBerkeleyUser } from "@/lib/supabase/auth-helpers";
+import { BLOCKED_MESSAGING_MESSAGE } from "@/lib/user-blocks";
 import {
   LISTING_MESSAGE_TEMPLATES,
   priceOfferTemplate,
@@ -19,6 +20,7 @@ type Props = {
   status: ListingStatus;
   priceLabel: string;
   existingConversationId: string | null;
+  messagingBlocked?: boolean;
 };
 
 export function MessageSellerButton({
@@ -28,6 +30,7 @@ export function MessageSellerButton({
   status,
   priceLabel,
   existingConversationId,
+  messagingBlocked = false,
 }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -67,6 +70,12 @@ export function MessageSellerButton({
       <p className="text-sm text-amber-700 dark:text-amber-300">
         Sign in with your Berkeley Google account to message the seller.
       </p>
+    );
+  }
+
+  if (messagingBlocked) {
+    return (
+      <p className="text-sm text-zinc-500">{BLOCKED_MESSAGING_MESSAGE}</p>
     );
   }
 

@@ -11,6 +11,7 @@ export type Profile = {
   created_at: string;
   updated_at: string;
   terms_accepted_at: string | null;
+  is_verified_berkeley: boolean;
 };
 
 export type Listing = {
@@ -47,7 +48,12 @@ export type ListingWithImages = Listing & {
   listing_images: ListingImage[];
   profiles: Pick<
     Profile,
-    "id" | "display_name" | "show_real_name" | "marketplace_alias" | "avatar_url"
+    | "id"
+    | "display_name"
+    | "show_real_name"
+    | "marketplace_alias"
+    | "avatar_url"
+    | "is_verified_berkeley"
   > | null;
 };
 
@@ -81,7 +87,12 @@ export type WantedPost = {
   updated_at: string;
   profiles?: Pick<
     Profile,
-    "id" | "display_name" | "show_real_name" | "marketplace_alias" | "avatar_url"
+    | "id"
+    | "display_name"
+    | "show_real_name"
+    | "marketplace_alias"
+    | "avatar_url"
+    | "is_verified_berkeley"
   > | null;
 };
 

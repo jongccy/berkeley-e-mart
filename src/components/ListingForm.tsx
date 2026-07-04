@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import {
   CATEGORIES,
+  FREE_CATEGORY,
   HOUSING_CATEGORY,
   OTHER_CATEGORY,
 } from "@/lib/constants";
@@ -13,17 +14,18 @@ import {
   updateListingFromForm,
   type ListingFormState,
 } from "@/app/actions/listings";
-import { ListingPhotoUpload } from "@/components/ListingPhotoUpload";
+import { ListingPhotoUpload, type ExistingListingPhoto } from "@/components/ListingPhotoUpload";
 import { ListingTagPicker } from "@/components/ListingTagPicker";
 import { QualityStars } from "@/components/QualityStars";
 import type { Listing } from "@/types/database";
 
 type Props = {
   listing?: Listing;
+  existingPhotos?: ExistingListingPhoto[];
   initialError?: string;
 };
 
-export function ListingForm({ listing, initialError }: Props) {
+export function ListingForm({ listing, existingPhotos = [], initialError }: Props) {
   const isEdit = !!listing;
   const [createState, createAction, createPending] = useActionState<
     ListingFormState,
@@ -43,7 +45,10 @@ export function ListingForm({ listing, initialError }: Props) {
     }
   }, [formState.redirectTo, router]);
 
-  const defaultCategory = listing?.category ?? OTHER_CATEGORY;
+  const defaultCategory =
+    listing?.price_cents === 0
+      ? FREE_CATEGORY
+      : (listing?.category ?? OTHER_CATEGORY);
   const [category, setCategory] = useState(defaultCategory);
   const [qualityRating, setQualityRating] = useState(
     listing?.quality_rating && listing.quality_rating >= 1
@@ -55,9 +60,13 @@ export function ListingForm({ listing, initialError }: Props) {
     listing?.price_cents != null ? (listing.price_cents / 100).toString() : ""
   );
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const [photoCount, setPhotoCount] = useState(
+    listing ? existingPhotos.length : 0
+  );
   const [photoError, setPhotoError] = useState("");
   const [isDirty, setIsDirty] = useState(false);
   const isHousing = category === HOUSING_CATEGORY;
+  const isFreeListing = category === FREE_CATEGORY;
   const isNewListing = !listing;
 
   function handlePriceChange(value: string) {
@@ -68,6 +77,14 @@ export function ListingForm({ listing, initialError }: Props) {
         ? `${parts[0]}.${parts.slice(1).join("").slice(0, 2)}`
         : sanitized;
     setPrice(normalized);
+
+    const parsed = parseFloat(normalized);
+    if (Number.isFinite(parsed) && parsed === 0) {
+      setCategory(FREE_CATEGORY);
+    } else if (category === FREE_CATEGORY && parsed > 0) {
+      setCategory(OTHER_CATEGORY);
+    }
+
     setIsDirty(true);
   }
 
@@ -84,6 +101,12 @@ export function ListingForm({ listing, initialError }: Props) {
     if (isNewListing && photoFiles.length === 0) {
       event.preventDefault();
       setPhotoError("Add at least one photo.");
+      return;
+    }
+
+    if (isEdit && photoCount === 0) {
+      event.preventDefault();
+      setPhotoError("Keep at least one photo.");
     }
   }
 
@@ -166,6 +189,11 @@ export function ListingForm({ listing, initialError }: Props) {
               className="w-full rounded-lg border border-zinc-300 py-2 pl-7 pr-3 dark:border-zinc-700 dark:bg-zinc-950"
             />
           </div>
+          {isFreeListing && (
+            <p className="mt-1 text-xs text-zinc-500">
+              $0 listings are categorized as Free / Giveaway.
+            </p>
+          )}
         </div>
       </div>
 
@@ -242,16 +270,18 @@ export function ListingForm({ listing, initialError }: Props) {
         </fieldset>
       )}
 
-      {isNewListing && (
-        <div>
-          <ListingPhotoUpload onFilesChange={setPhotoFiles} />
-          {photoError && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-              {photoError}
-            </p>
-          )}
-        </div>
-      )}
+      <div>
+        <ListingPhotoUpload
+          existingImages={isEdit ? existingPhotos : undefined}
+          onFilesChange={setPhotoFiles}
+          onPhotoCountChange={setPhotoCount}
+        />
+        {photoError && (
+          <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+            {photoError}
+          </p>
+        )}
+      </div>
 
       <div className="space-y-3">
         <button

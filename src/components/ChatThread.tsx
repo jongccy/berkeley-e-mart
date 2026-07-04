@@ -11,12 +11,16 @@ type Props = {
   conversationId: string;
   currentUserId: string;
   initialMessages: Message[];
+  messagingDisabled?: boolean;
+  messagingDisabledMessage?: string;
 };
 
 export function ChatThread({
   conversationId,
   currentUserId,
   initialMessages,
+  messagingDisabled = false,
+  messagingDisabledMessage = "You can't message this user.",
 }: Props) {
   const router = useRouter();
   const [messages, setMessages] = useState(initialMessages);
@@ -58,6 +62,8 @@ export function ChatThread({
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
+    if (messagingDisabled) return;
+
     const text = body.trim();
     if (!text || sending) return;
 
@@ -122,6 +128,11 @@ export function ChatThread({
           {error}
         </p>
       )}
+      {messagingDisabled ? (
+        <p className="border-t border-zinc-200 px-3 py-3 text-sm text-zinc-500 dark:border-zinc-800">
+          {messagingDisabledMessage}
+        </p>
+      ) : (
       <form onSubmit={handleSend} className="flex gap-2 border-t border-zinc-200 p-3 dark:border-zinc-800">
         <input
           value={body}
@@ -138,6 +149,7 @@ export function ChatThread({
           Send
         </button>
       </form>
+      )}
     </div>
   );
 }

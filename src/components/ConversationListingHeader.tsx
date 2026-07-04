@@ -3,6 +3,7 @@ import { formatPrice, getPublicImageUrl } from "@/lib/format";
 import { LISTING_IMAGE_BUCKET } from "@/lib/constants";
 import { ListingStatusBadge } from "@/components/ListingStatusBadge";
 import { ListingThumbnail } from "@/components/ListingThumbnail";
+import { DisplayNameWithBadge } from "@/components/DisplayNameWithBadge";
 import type { ListingStatus } from "@/types/database";
 
 type Props = {
@@ -11,6 +12,7 @@ type Props = {
   priceCents: number | null;
   imageUrl: string | null;
   otherPartyName: string;
+  otherPartyVerified?: boolean;
   listingStatus: ListingStatus;
 };
 
@@ -20,6 +22,7 @@ export function ConversationListingHeader({
   priceCents,
   imageUrl,
   otherPartyName,
+  otherPartyVerified = false,
   listingStatus,
 }: Props) {
   return (
@@ -32,7 +35,13 @@ export function ConversationListingHeader({
         <ListingThumbnail imageUrl={imageUrl} alt={title} size="md" />
       </Link>
       <div className="min-w-0 flex-1">
-        <p className="text-xs text-zinc-500">Chat with {otherPartyName}</p>
+        <p className="text-xs text-zinc-500">
+          Chat with{" "}
+          <DisplayNameWithBadge
+            name={otherPartyName}
+            verified={otherPartyVerified}
+          />
+        </p>
         <div className="mt-0.5 flex flex-wrap items-center gap-2">
           <h1 className="line-clamp-2 text-lg font-bold">{title}</h1>
           <ListingStatusBadge status={listingStatus} />

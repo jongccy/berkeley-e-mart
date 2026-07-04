@@ -1,15 +1,29 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSoldListingCutoffIso } from "@/lib/sold-listings";
 
-export async function expireSoldListings(supabase: SupabaseClient) {
+export async function expireSoldListings(
+  supabase: SupabaseClient,
+  options?: { throwOnError?: boolean }
+): Promise<number> {
   const cutoff = getSoldListingCutoffIso();
 
-  await supabase
+  const { data, error } = await supabase
     .from("listings")
     .update({ status: "removed" })
     .eq("status", "sold")
     .not("sold_at", "is", null)
-    .lt("sold_at", cutoff);
+    .lt("sold_at", cutoff)
+    .select("id");
+
+  if (error) {
+    if (options?.throwOnError) {
+      throw new Error(error.message);
+    }
+    console.error("expireSoldListings:", error.message);
+    return 0;
+  }
+
+  return data?.length ?? 0;
 }
 
 export async function countArchivedSoldListings(

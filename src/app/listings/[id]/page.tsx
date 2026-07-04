@@ -13,6 +13,7 @@ import { HOUSING_CATEGORY, LISTING_IMAGE_BUCKET } from "@/lib/constants";
 import {
   PROFILE_IDENTITY_SELECT,
   resolveSellerDisplayName,
+  profileIsVerified,
   sellerProfileIsPublic,
 } from "@/lib/profile-display";
 import { StarRating } from "@/components/StarRating";
@@ -21,11 +22,15 @@ import { ListingTags } from "@/components/ListingTags";
 import { ListingLikeButton } from "@/components/ListingLikeButton";
 import { MarkAsSoldButton } from "@/components/MarkAsSoldButton";
 import { DeleteListingButton } from "@/components/DeleteListingButton";
+import { ReportButton } from "@/components/ReportButton";
+import { BlockUserButton } from "@/components/BlockUserButton";
+import { DisplayNameWithBadge } from "@/components/DisplayNameWithBadge";
 import { ProfileAvatar } from "@/components/ProfileAvatar";
 import { getLikedListingIds } from "@/lib/listing-likes";
 import { expireSoldListings } from "@/lib/expire-sold-listings";
 import { isSoldListingVisible } from "@/lib/sold-listings";
 import { isAuthenticatedBerkeleyUser } from "@/lib/supabase/auth-helpers";
+import { usersAreBlocked, viewerHasBlockedUser } from "@/lib/user-blocks";
 
 import type { ListingWithImages } from "@/types/database";
 
@@ -81,6 +86,7 @@ export default async function ListingDetailPage({
 
   const isOwner = user?.id === item.seller_id;
   const sellerName = resolveSellerDisplayName(item.profiles);
+  const sellerVerified = profileIsVerified(item.profiles);
   const showSellerProfile =
     sellerProfileIsPublic(item.profiles) && !isOwner;
   const images = [...(item.listing_images ?? [])].sort(
@@ -105,6 +111,14 @@ export default async function ListingDetailPage({
   const likedIds = await getLikedListingIds(supabase, user?.id);
   const isLiked = likedIds.has(id);
   const canLike = Boolean(user && isAuthenticatedBerkeleyUser(user));
+  const messagingBlocked =
+    user && !isOwner
+      ? await usersAreBlocked(supabase, user.id, item.seller_id)
+      : false;
+  const hasBlockedSeller =
+    user && !isOwner
+      ? await viewerHasBlockedUser(supabase, user.id, item.seller_id)
+      : false;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -228,29 +242,49 @@ export default async function ListingDetailPage({
                     href={`/profile/${item.profiles.id}`}
                     className="font-medium hover:underline"
                   >
-                    {sellerName}
+                    <DisplayNameWithBadge
+                      name={sellerName}
+                      verified={sellerVerified}
+                    />
                   </Link>
                 ) : (
-                  <p className="font-medium">{sellerName}</p>
+                  <p className="font-medium">
+                    <DisplayNameWithBadge
+                      name={sellerName}
+                      verified={sellerVerified}
+                    />
+                  </p>
                 )}
                 {item.profiles.bio && (
                   <p className="mt-2 whitespace-pre-wrap text-sm text-zinc-600 dark:text-zinc-400">
                     {item.profiles.bio}
                   </p>
                 )}
+                {user && !isOwner && (
+                  <div className="mt-3">
+                    <BlockUserButton
+                      blockedUserId={item.seller_id}
+                      initialBlocked={hasBlockedSeller}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
-          {!isOwner && (
-            <MessageSellerButton
-              listingId={item.id}
-              sellerId={item.seller_id}
-              user={user}
-              status={item.status}
-              priceLabel={formatPrice(item.price_cents)}
-              existingConversationId={existingConversationId}
-            />
+          {!isOwner && canLike && (
+            <div className="flex flex-wrap items-center gap-4">
+              <MessageSellerButton
+                listingId={item.id}
+                sellerId={item.seller_id}
+                user={user}
+                status={item.status}
+                priceLabel={formatPrice(item.price_cents)}
+                existingConversationId={existingConversationId}
+                messagingBlocked={messagingBlocked}
+              />
+              <ReportButton kind="listing" listingId={item.id} />
+            </div>
           )}
 
           {isOwner && item.status === "active" && (

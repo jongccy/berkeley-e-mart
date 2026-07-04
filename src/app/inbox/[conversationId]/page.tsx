@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { markConversationRead } from "@/lib/inbox-unread";
 import { ChatThread } from "@/components/ChatThread";
+import { ReportButton } from "@/components/ReportButton";
+import { BlockUserButton } from "@/components/BlockUserButton";
+import { DisplayNameWithBadge } from "@/components/DisplayNameWithBadge";
 import {
   ConversationListingHeader,
   getListingHeaderImageUrl,
@@ -11,8 +16,14 @@ import {
   PROFILE_IDENTITY_SELECT,
   resolvePublicName,
   resolveSellerDisplayName,
+  profileIsVerified,
 } from "@/lib/profile-display";
 import type { ListingStatus, Message } from "@/types/database";
+import {
+  usersAreBlocked,
+  viewerHasBlockedUser,
+  BLOCKED_MESSAGING_MESSAGE,
+} from "@/lib/user-blocks";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +57,9 @@ export default async function ConversationPage({
 
   if (!conversation) notFound();
 
+  await markConversationRead(supabase, user.id, conversationId);
+  revalidatePath("/", "layout");
+
   const { data: messages } = await supabase
     .from("messages")
     .select("*")
@@ -78,12 +92,14 @@ export default async function ConversationPage({
         display_name: string | null;
         show_real_name: boolean;
         marketplace_alias: string | null;
+        is_verified_berkeley: boolean;
       }
     | {
         id: string;
         display_name: string | null;
         show_real_name: boolean;
         marketplace_alias: string | null;
+        is_verified_berkeley: boolean;
       }[];
   const buyer = Array.isArray(buyerRaw) ? buyerRaw[0] : buyerRaw;
 
@@ -93,25 +109,50 @@ export default async function ConversationPage({
         display_name: string | null;
         show_real_name: boolean;
         marketplace_alias: string | null;
+        is_verified_berkeley: boolean;
       }
     | {
         id: string;
         display_name: string | null;
         show_real_name: boolean;
         marketplace_alias: string | null;
+        is_verified_berkeley: boolean;
       }[];
   const seller = Array.isArray(sellerRaw) ? sellerRaw[0] : sellerRaw;
 
   const isBuyer = buyer.id === user.id;
+  const otherParty = isBuyer ? seller : buyer;
   const otherPartyName = isBuyer
     ? resolveSellerDisplayName(seller)
     : resolvePublicName(buyer);
+  const otherPartyVerified = profileIsVerified(isBuyer ? seller : buyer);
+  const messagingBlocked = await usersAreBlocked(supabase, user.id, otherParty.id);
+  const hasBlockedOtherParty = await viewerHasBlockedUser(
+    supabase,
+    user.id,
+    otherParty.id
+  );
 
   return (
     <div className="mx-auto max-w-2xl space-y-4 px-4 py-8">
-      <Link href="/inbox" className="text-sm text-[#003262] underline">
-        ← Back to inbox
-      </Link>
+      <div className="flex items-center justify-between gap-3">
+        <Link href="/inbox" className="text-sm text-[#003262] underline">
+          ← Back to inbox
+        </Link>
+        <div className="flex items-center gap-3">
+          <BlockUserButton
+            blockedUserId={otherParty.id}
+            initialBlocked={hasBlockedOtherParty}
+          />
+          <ReportButton
+            kind="user"
+            reportedUserId={otherParty.id}
+            listingId={listing?.id}
+            conversationId={conversationId}
+            label="Report user"
+          />
+        </div>
+      </div>
 
       {listing ? (
         <ConversationListingHeader
@@ -123,6 +164,7 @@ export default async function ConversationPage({
             listing.listing_images
           )}
           otherPartyName={otherPartyName}
+          otherPartyVerified={otherPartyVerified}
           listingStatus={resolveChatListingStatus(
             listing.status,
             listing.sold_at
@@ -131,7 +173,13 @@ export default async function ConversationPage({
       ) : (
         <div>
           <h1 className="text-xl font-bold">Conversation</h1>
-          <p className="text-sm text-zinc-500">Chat with {otherPartyName}</p>
+          <p className="text-sm text-zinc-500">
+            Chat with{" "}
+            <DisplayNameWithBadge
+              name={otherPartyName}
+              verified={otherPartyVerified}
+            />
+          </p>
         </div>
       )}
 
@@ -140,6 +188,8 @@ export default async function ConversationPage({
         conversationId={conversationId}
         currentUserId={user.id}
         initialMessages={(messages ?? []) as Message[]}
+        messagingDisabled={messagingBlocked}
+        messagingDisabledMessage={BLOCKED_MESSAGING_MESSAGE}
       />
     </div>
   );

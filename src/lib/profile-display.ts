@@ -2,11 +2,11 @@ import type { Profile } from "@/types/database";
 
 export type ProfilePublicIdentity = Pick<
   Profile,
-  "display_name" | "show_real_name" | "marketplace_alias"
+  "display_name" | "show_real_name" | "marketplace_alias" | "is_verified_berkeley"
 >;
 
 export const PROFILE_IDENTITY_SELECT =
-  "id, display_name, show_real_name, marketplace_alias";
+  "id, display_name, show_real_name, marketplace_alias, is_verified_berkeley";
 
 export function resolvePublicName(
   profile: ProfilePublicIdentity | null
@@ -30,4 +30,10 @@ export function sellerProfileIsPublic(
   profile: ProfilePublicIdentity | null
 ): boolean {
   return profile?.show_real_name !== false;
+}
+
+export function profileIsVerified(
+  profile: Pick<Profile, "is_verified_berkeley"> | null | undefined
+): boolean {
+  return Boolean(profile?.is_verified_berkeley);
 }
