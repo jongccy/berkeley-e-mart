@@ -1,25 +1,57 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { markListingSoldFromConversation } from "@/app/actions/listings";
 
 type Props = {
-  action: () => Promise<void>;
+  action?: () => Promise<void>;
+  conversationId?: string;
   variant?: "default" | "inline";
 };
 
-export function MarkAsSoldButton({ action, variant = "default" }: Props) {
+export function MarkAsSoldButton({
+  action,
+  conversationId,
+  variant = "default",
+}: Props) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const triggerClassName =
     variant === "inline"
       ? "text-sm font-medium text-[#003262] underline hover:text-[#002244] dark:text-[#FDB515]"
       : "rounded-lg bg-[#FDB515] px-4 py-2 text-sm font-medium text-[#003262]";
 
+  const handleConversationMarkSold = async () => {
+    if (!conversationId) return;
+
+    setPending(true);
+    setError(null);
+
+    const result = await markListingSoldFromConversation(conversationId);
+
+    setPending(false);
+
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+
+    setOpen(false);
+    router.refresh();
+  };
+
   return (
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setError(null);
+          setOpen(true);
+        }}
         className={triggerClassName}
       >
         Mark sold
@@ -34,21 +66,48 @@ export function MarkAsSoldButton({ action, variant = "default" }: Props) {
               will come down automatically.
             </p>
 
-            <form action={action} className="mt-4 flex gap-2">
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="flex-1 rounded-lg border border-zinc-300 px-4 py-2.5 text-sm font-medium dark:border-zinc-700"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="flex-1 rounded-lg bg-[#FDB515] px-4 py-2.5 text-sm font-medium text-[#003262]"
-              >
-                Mark as sold
-              </button>
-            </form>
+            {error && (
+              <p className="mt-3 rounded-lg bg-red-50 p-2 text-sm text-red-800 dark:bg-red-950 dark:text-red-200">
+                {error}
+              </p>
+            )}
+
+            {conversationId ? (
+              <div className="mt-4 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  disabled={pending}
+                  className="flex-1 rounded-lg border border-zinc-300 px-4 py-2.5 text-sm font-medium disabled:opacity-50 dark:border-zinc-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConversationMarkSold}
+                  disabled={pending}
+                  className="flex-1 rounded-lg bg-[#FDB515] px-4 py-2.5 text-sm font-medium text-[#003262] disabled:opacity-50"
+                >
+                  {pending ? "Marking…" : "Mark as sold"}
+                </button>
+              </div>
+            ) : (
+              <form action={action} className="mt-4 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="flex-1 rounded-lg border border-zinc-300 px-4 py-2.5 text-sm font-medium dark:border-zinc-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 rounded-lg bg-[#FDB515] px-4 py-2.5 text-sm font-medium text-[#003262]"
+                >
+                  Mark as sold
+                </button>
+              </form>
+            )}
           </div>
         </div>
       )}

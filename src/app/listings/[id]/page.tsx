@@ -7,6 +7,7 @@ import { logListingView, markListingSold, removeListing } from "@/app/actions/li
 import {
   formatCategory,
   formatListingPrice,
+  formatPostedDate,
   getPublicImageUrl,
 } from "@/lib/format";
 import { HOUSING_CATEGORY, LISTING_IMAGE_BUCKET } from "@/lib/constants";
@@ -17,6 +18,7 @@ import {
   sellerProfileIsPublic,
 } from "@/lib/profile-display";
 import { StarRating } from "@/components/StarRating";
+import { SoldListingOverlay } from "@/components/SoldListingOverlay";
 import { ListingStatusBadge } from "@/components/ListingStatusBadge";
 import { ListingTags } from "@/components/ListingTags";
 import { ListingLikeButton } from "@/components/ListingLikeButton";
@@ -141,12 +143,15 @@ export default async function ListingDetailPage({
         </p>
       )}
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        <div>
+      <div
+        className={`grid gap-8 lg:grid-cols-2${item.status === "sold" ? " relative" : ""}`}
+      >
+        {item.status === "sold" && <SoldListingOverlay />}
+        <div className="relative z-[2]">
           <ListingImageGallery images={galleryImages} alt={item.title} />
         </div>
 
-        <div className="space-y-4">
+        <div className="relative z-[2] space-y-4">
           <span className="rounded bg-[#003262] px-2 py-0.5 text-xs text-white">
             {formatCategory(item.category)}
           </span>
@@ -174,9 +179,63 @@ export default async function ListingDetailPage({
           {item.status === "active" && (
             <ListingStatusBadge status={item.status} />
           )}
+
+          <div className="border-t border-zinc-200 py-4 dark:border-zinc-800">
+            <div className="flex items-center gap-3">
+              {showSellerProfile ? (
+                <Link href={`/profile/${item.profiles.id}`} className="shrink-0">
+                  <ProfileAvatar
+                    avatarUrl={item.profiles.avatar_url}
+                    alt={sellerName}
+                    size="md"
+                  />
+                </Link>
+              ) : (
+                <ProfileAvatar
+                  avatarUrl={item.profiles.avatar_url}
+                  alt={sellerName}
+                  size="md"
+                />
+              )}
+              <div className="min-w-0">
+                {showSellerProfile ? (
+                  <Link
+                    href={`/profile/${item.profiles.id}`}
+                    className="hover:underline"
+                  >
+                    <DisplayNameWithBadge
+                      name={sellerName}
+                      verified={sellerVerified}
+                      nameClassName="font-bold text-zinc-900 dark:text-zinc-100"
+                    />
+                  </Link>
+                ) : (
+                  <DisplayNameWithBadge
+                    name={sellerName}
+                    verified={sellerVerified}
+                    nameClassName="font-bold text-zinc-900 dark:text-zinc-100"
+                  />
+                )}
+                <p className="mt-0.5 text-sm text-zinc-500">
+                  Posted {formatPostedDate(item.created_at)}
+                </p>
+              </div>
+            </div>
+            {user && !isOwner && (
+              <div className="mt-3">
+                <BlockUserButton
+                  blockedUserId={item.seller_id}
+                  initialBlocked={hasBlockedSeller}
+                />
+              </div>
+            )}
+          </div>
+
           <div className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
-            <p className="text-sm font-medium text-zinc-500">Description</p>
-            <p className="mt-2 whitespace-pre-wrap text-sm text-zinc-600 dark:text-zinc-300">
+            <h2 className="text-sm font-bold tracking-wide text-zinc-900 dark:text-zinc-100">
+              DESCRIPTION
+            </h2>
+            <p className="mt-3 whitespace-pre-wrap text-sm text-zinc-600 dark:text-zinc-300">
               {item.description}
             </p>
           </div>
@@ -225,60 +284,6 @@ export default async function ListingDetailPage({
               )}
             </dl>
           )}
-
-          <div className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
-            <p className="text-sm font-medium text-zinc-500">Seller</p>
-            <div className="mt-3 flex gap-4">
-              {showSellerProfile ? (
-                <Link href={`/profile/${item.profiles.id}`} className="shrink-0">
-                  <ProfileAvatar
-                    avatarUrl={item.profiles.avatar_url}
-                    alt={sellerName}
-                    size="sm"
-                  />
-                </Link>
-              ) : (
-                <ProfileAvatar
-                  avatarUrl={item.profiles.avatar_url}
-                  alt={sellerName}
-                  size="sm"
-                />
-              )}
-              <div className="min-w-0 flex-1">
-                {showSellerProfile ? (
-                  <Link
-                    href={`/profile/${item.profiles.id}`}
-                    className="font-medium hover:underline"
-                  >
-                    <DisplayNameWithBadge
-                      name={sellerName}
-                      verified={sellerVerified}
-                    />
-                  </Link>
-                ) : (
-                  <p className="font-medium">
-                    <DisplayNameWithBadge
-                      name={sellerName}
-                      verified={sellerVerified}
-                    />
-                  </p>
-                )}
-                {item.profiles.bio && (
-                  <p className="mt-2 whitespace-pre-wrap text-sm text-zinc-600 dark:text-zinc-400">
-                    {item.profiles.bio}
-                  </p>
-                )}
-                {user && !isOwner && (
-                  <div className="mt-3">
-                    <BlockUserButton
-                      blockedUserId={item.seller_id}
-                      initialBlocked={hasBlockedSeller}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
 
           {!isOwner && canLike && (
             <div className="flex flex-wrap items-center gap-4">

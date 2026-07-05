@@ -3,12 +3,13 @@ import { DEFAULT_AVATAR_URL } from "@/lib/constants";
 type Props = {
   avatarUrl: string | null | undefined;
   alt?: string;
-  size?: "xs" | "sm" | "lg";
+  size?: "xs" | "md" | "sm" | "lg";
   className?: string;
 };
 
 const sizeClasses = {
   xs: "h-9 w-9",
+  md: "h-12 w-12",
   sm: "h-20 w-20",
   lg: "h-32 w-32",
 } as const;

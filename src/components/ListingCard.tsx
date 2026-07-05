@@ -4,6 +4,7 @@ import { ListingTags } from "@/components/ListingTags";
 import { ListingLikeButton } from "@/components/ListingLikeButton";
 import { ListingCardImageCarousel } from "@/components/ListingCardImageCarousel";
 import { ListingStatusBadge } from "@/components/ListingStatusBadge";
+import { SoldListingOverlay } from "@/components/SoldListingOverlay";
 import { DisplayNameWithBadge } from "@/components/DisplayNameWithBadge";
 import { resolveSellerDisplayName, profileIsVerified } from "@/lib/profile-display";
 import type { ListingWithImages } from "@/types/database";
@@ -37,8 +38,13 @@ export function ListingCard({
       ),
     }));
 
+  const isSold = listing.status === "sold";
+
   return (
-    <div className="group flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+    <div
+      className={`group flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900${isSold ? " relative" : ""}`}
+    >
+      {isSold && <SoldListingOverlay />}
       <ListingCardImageCarousel
         images={cardImages}
         alt={listing.title}
@@ -50,8 +56,8 @@ export function ListingCard({
             <h3 className="line-clamp-2 min-w-0 flex-1 font-medium group-hover:underline">
               {listing.title}
             </h3>
-            {listing.status === "sold" && (
-              <span className="shrink-0">
+            {isSold && (
+              <span className="relative z-[2] shrink-0">
                 <ListingStatusBadge status="sold" />
               </span>
             )}

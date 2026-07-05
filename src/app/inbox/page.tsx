@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { formatRelativeTime } from "@/lib/format";
 import { isMessageUnread } from "@/lib/inbox-unread";
+import { SoldListingOverlay } from "@/components/SoldListingOverlay";
 import { ListingStatusBadge } from "@/components/ListingStatusBadge";
 import { ListingThumbnail } from "@/components/ListingThumbnail";
 import { DisplayNameWithBadge } from "@/components/DisplayNameWithBadge";
@@ -167,13 +168,16 @@ export default async function InboxPage() {
               lastReadByConversation.get(c.id)
             );
 
+            const isSoldThread = listingStatus === "sold";
+
             return (
               <li
                 key={c.id}
                 className={`flex items-start gap-3 px-4 py-4 hover:bg-zinc-50 dark:hover:bg-zinc-900 ${
                   unread ? "bg-[#003262]/5" : ""
-                }`}
+                }${isSoldThread ? " relative" : ""}`}
               >
+                {isSoldThread && <SoldListingOverlay />}
                 {listing ? (
                   <Link
                     href={`/listings/${listing.id}`}
@@ -229,7 +233,7 @@ export default async function InboxPage() {
                     </Link>
                   ) : null}
                 </div>
-                <span className="shrink-0 text-xs text-zinc-400">
+                <span className="relative z-[2] shrink-0 text-xs text-zinc-400">
                   {formatRelativeTime(c.last_message_at)}
                 </span>
               </li>

@@ -26,6 +26,14 @@ export function formatCategory(value: string): string {
   return match?.label ?? value;
 }
 
+export function formatPostedDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 export function formatRelativeTime(iso: string): string {
   const date = new Date(iso);
   const diff = Date.now() - date.getTime();

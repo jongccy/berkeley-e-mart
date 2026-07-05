@@ -5,6 +5,7 @@ import { ChatThread } from "@/components/ChatThread";
 import { MarkConversationRead } from "@/components/MarkConversationRead";
 import { ReportButton } from "@/components/ReportButton";
 import { BlockUserButton } from "@/components/BlockUserButton";
+import { MarkAsSoldButton } from "@/components/MarkAsSoldButton";
 import { DisplayNameWithBadge } from "@/components/DisplayNameWithBadge";
 import {
   ConversationListingHeader,
@@ -152,21 +153,31 @@ export default async function ConversationPage({
       </div>
 
       {listing ? (
-        <ConversationListingHeader
-          listingId={listing.id}
-          title={listing.title}
-          priceCents={listing.price_cents}
-          imageUrl={getListingHeaderImageUrl(
-            supabaseUrl,
-            listing.listing_images
+        <>
+          <ConversationListingHeader
+            listingId={listing.id}
+            title={listing.title}
+            priceCents={listing.price_cents}
+            imageUrl={getListingHeaderImageUrl(
+              supabaseUrl,
+              listing.listing_images
+            )}
+            otherPartyName={otherPartyName}
+            otherPartyVerified={otherPartyVerified}
+            listingStatus={resolveChatListingStatus(
+              listing.status,
+              listing.sold_at
+            )}
+          />
+          {!isBuyer && listing.status === "active" && (
+            <div className="flex justify-end">
+              <MarkAsSoldButton
+                conversationId={conversationId}
+                variant="inline"
+              />
+            </div>
           )}
-          otherPartyName={otherPartyName}
-          otherPartyVerified={otherPartyVerified}
-          listingStatus={resolveChatListingStatus(
-            listing.status,
-            listing.sold_at
-          )}
-        />
+        </>
       ) : (
         <div>
           <h1 className="text-xl font-bold">Conversation</h1>

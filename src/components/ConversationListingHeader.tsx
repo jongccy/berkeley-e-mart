@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatPrice, getPublicImageUrl } from "@/lib/format";
 import { LISTING_IMAGE_BUCKET } from "@/lib/constants";
 import { ListingStatusBadge } from "@/components/ListingStatusBadge";
+import { SoldListingOverlay } from "@/components/SoldListingOverlay";
 import { ListingThumbnail } from "@/components/ListingThumbnail";
 import { DisplayNameWithBadge } from "@/components/DisplayNameWithBadge";
 import type { ListingStatus } from "@/types/database";
@@ -25,16 +26,21 @@ export function ConversationListingHeader({
   otherPartyVerified = false,
   listingStatus,
 }: Props) {
+  const isSold = listingStatus === "sold";
+
   return (
-    <div className="flex gap-4 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+    <div
+      className={`flex gap-4 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800${isSold ? " relative" : ""}`}
+    >
+      {isSold && <SoldListingOverlay />}
       <Link
         href={`/listings/${listingId}`}
-        className="shrink-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003262] dark:focus:ring-[#FDB515]"
+        className="relative z-[2] shrink-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003262] dark:focus:ring-[#FDB515]"
         aria-label={`View listing: ${title}`}
       >
         <ListingThumbnail imageUrl={imageUrl} alt={title} size="md" />
       </Link>
-      <div className="min-w-0 flex-1">
+      <div className="relative z-[2] min-w-0 flex-1">
         <p className="text-xs text-zinc-500">
           Chat with{" "}
           <DisplayNameWithBadge
