@@ -104,12 +104,31 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Deploy (Vercel)
 
+### Minimum (Hobby — start here)
+
 1. Push the repo to GitHub.
 2. Import the project in [Vercel](https://vercel.com).
-3. Add the same environment variables (use your production URL for `NEXT_PUBLIC_SITE_URL`).
-4. Add **`CRON_SECRET`** (random string) and **`SUPABASE_SERVICE_ROLE_KEY`** — required for the hourly job that archives sold listings after 24 hours (`/api/cron/expire-sold-listings`). Vercel Cron sends `Authorization: Bearer <CRON_SECRET>` automatically.
-5. **Email notifications (optional):** add **`RESEND_API_KEY`** and **`EMAIL_FROM`** (a verified sender in Resend, e.g. `Calket <notifications@yourdomain.com>`). Without these, messaging still works; recipients just won't get "new message" emails.
-6. In Supabase Auth settings, add your Vercel URL to redirect URLs.
+3. Add these **three** environment variables (Production):
+   - `NEXT_PUBLIC_SUPABASE_URL` — Supabase **Project URL** (`https://….supabase.co`)
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase **anon public** key
+   - `NEXT_PUBLIC_SITE_URL` — your Vercel URL, e.g. `https://your-app.vercel.app`
+4. In Supabase → **Authentication → URL Configuration**, set **Site URL** and add redirect URLs:
+   - `https://your-app.vercel.app/auth/callback`
+   - `https://your-app.vercel.app/**`
+5. Run Supabase migrations `001`–`024` in the SQL editor if you have not already.
+
+No cron, service role, or email keys are required for the core marketplace to work.
+
+### Scale up later (when traffic grows)
+
+Add these when you want automated sold-listing cleanup and optional email alerts:
+
+- **`CRON_SECRET`** — random string you generate (`openssl rand -hex 32`)
+- **`SUPABASE_SERVICE_ROLE_KEY`** — Supabase service role key (server-only)
+- Re-enable the cron in `vercel.json` (daily on Hobby: `"schedule": "0 0 * * *"`)
+- **`RESEND_API_KEY`** + **`EMAIL_FROM`** — optional new-message emails
+
+Sold listings are hidden from browse after 24 hours via query filters even before cron is enabled; cron archives them in the database in the background.
 
 ## Smoke test checklist
 

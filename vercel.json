@@ -1,10 +1,4 @@
 {
   "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "crons": [
-    {
-      "path": "/api/cron/expire-sold-listings",
-      "schedule": "0 * * * *"
-    }
-  ]
+  "buildCommand": "npm run build"
 }
