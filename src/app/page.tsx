@@ -8,6 +8,11 @@ import { getLikedListingIds } from "@/lib/listing-likes";
 import { expireSoldListings } from "@/lib/expire-sold-listings";
 import { getSoldListingCutoffIso } from "@/lib/sold-listings";
 import { applyListingCategoryFilter } from "@/lib/listing-filters";
+import {
+  appendHousingFilterParams,
+  applyHousingListingFilters,
+  type HousingFilterParams,
+} from "@/lib/housing-browse-filters";
 import { PROFILE_IDENTITY_SELECT } from "@/lib/profile-display";
 import type { ListingWithImages } from "@/types/database";
 
@@ -15,7 +20,7 @@ export const dynamic = "force-dynamic";
 
 const BROWSE_PAGE_SIZE = 16;
 
-type SearchParams = {
+type SearchParams = HousingFilterParams & {
   q?: string;
   category?: string;
   min_price?: string;
@@ -32,6 +37,7 @@ function buildBrowseHref(
   if (params.category) search.set("category", params.category);
   if (params.min_price) search.set("min_price", params.min_price);
   if (params.max_price) search.set("max_price", params.max_price);
+  appendHousingFilterParams(search, params);
   if (limit > BROWSE_PAGE_SIZE) search.set("limit", String(limit));
   const query = search.toString();
   return query ? `/?${query}` : "/";
@@ -70,6 +76,11 @@ export default async function HomePage({
   if (params.category) {
     query = applyListingCategoryFilter(query, [params.category]);
   }
+  query = applyHousingListingFilters(
+    query,
+    params,
+    params.category ? [params.category] : []
+  );
   if (params.q) {
     query = query.or(
       `title.ilike.%${params.q}%,description.ilike.%${params.q}%`

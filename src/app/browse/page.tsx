@@ -6,8 +6,15 @@ import { getLikedListingIds } from "@/lib/listing-likes";
 import { expireSoldListings } from "@/lib/expire-sold-listings";
 import { getSoldListingCutoffIso } from "@/lib/sold-listings";
 import { PROFILE_IDENTITY_SELECT } from "@/lib/profile-display";
-import { CATEGORIES } from "@/lib/constants";
+import { CATEGORIES, HOUSING_CATEGORY } from "@/lib/constants";
 import { applyListingCategoryFilter } from "@/lib/listing-filters";
+import {
+  appendHousingFilterParams,
+  applyHousingListingFilters,
+  isHousingCategorySelected,
+  type HousingFilterParams,
+} from "@/lib/housing-browse-filters";
+import { HousingBrowseFilters } from "@/components/HousingBrowseFilters";
 import type { ListingWithImages } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +23,7 @@ const PAGE_SIZE = 18;
 
 type SortKey = "recent" | "price_asc" | "price_desc";
 
-type SearchParams = {
+type SearchParams = HousingFilterParams & {
   q?: string;
   category?: string | string[];
   min_price?: string;
@@ -51,6 +58,7 @@ function buildHref(params: SearchParams, overrides: Record<string, string | stri
   if (merged.rating) search.set("rating", merged.rating);
   if (merged.sort && merged.sort !== "recent") search.set("sort", merged.sort);
   if (merged.limit) search.set("limit", merged.limit);
+  appendHousingFilterParams(search, merged);
 
   const query = search.toString();
   return query ? `/browse?${query}` : "/browse";
@@ -120,6 +128,7 @@ export default async function BrowsePage({
   if (Number.isFinite(minRating) && minRating >= 1) {
     query = query.gte("quality_rating", minRating);
   }
+  query = applyHousingListingFilters(query, params, selectedCategories);
 
   const { data: listings, count } = await query;
   const fetched = (listings ?? []) as ListingWithImages[];
@@ -129,6 +138,10 @@ export default async function BrowsePage({
   const likedIds = await getLikedListingIds(supabase, user?.id);
   const showLike = Boolean(user && isAuthenticatedBerkeleyUser(user));
   const resultCount = count ?? items.length;
+  const housingFiltersVisible = isHousingCategorySelected(selectedCategories);
+  const housingOnlySelected =
+    selectedCategories.length === 1 &&
+    selectedCategories[0] === HOUSING_CATEGORY;
 
   const fieldClass =
     "w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-[#FDB515] focus:ring-1 focus:ring-[#FDB515] dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100";
@@ -157,6 +170,15 @@ export default async function BrowsePage({
             )}
             {sort !== "recent" && (
               <input type="hidden" name="sort" value={sort} />
+            )}
+            {params.min_beds && (
+              <input type="hidden" name="min_beds" value={params.min_beds} />
+            )}
+            {params.min_baths && (
+              <input type="hidden" name="min_baths" value={params.min_baths} />
+            )}
+            {params.min_sqft && (
+              <input type="hidden" name="min_sqft" value={params.min_sqft} />
             )}
             <div className="flex items-center gap-2 rounded-full bg-white p-2 pl-5 shadow-lg">
               <input
@@ -240,7 +262,7 @@ export default async function BrowsePage({
 
             <div className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                Price
+                {housingOnlySelected ? "Rent ($/month)" : "Price"}
               </p>
               <div className="flex items-center gap-2">
                 <input
@@ -285,6 +307,13 @@ export default async function BrowsePage({
                 ))}
               </div>
             </div>
+
+            <HousingBrowseFilters
+              mode="checkbox"
+              initialHousingSelected={housingFiltersVisible}
+              values={params}
+              fieldClass={fieldClass}
+            />
 
             <div className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
