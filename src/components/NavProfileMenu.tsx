@@ -75,6 +75,14 @@ export function NavProfileMenu({ avatarUrl }: Props) {
             Profile
           </Link>
           <Link
+            href="/saved"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="block px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-900"
+          >
+            Saved
+          </Link>
+          <Link
             href="/inbox"
             role="menuitem"
             onClick={() => setOpen(false)}
