@@ -31,7 +31,7 @@ export async function Nav() {
   return (
     <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
       <div className="flex items-center justify-between px-4 py-3 sm:px-8">
-        <CalketLogo height={52} rounded="rounded-2xl" />
+        <CalketLogo height={72} rounded="rounded-2xl" />
         <nav className="ml-auto flex shrink-0 items-center gap-4">
           {user ? (
             <>
