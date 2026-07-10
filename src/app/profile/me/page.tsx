@@ -9,6 +9,10 @@ import { MyListingDashboard } from "@/components/MyListingDashboard";
 import { AvatarUpload } from "@/components/AvatarUpload";
 import { ProfileSettingsForm } from "@/components/ProfileSettingsForm";
 import {
+  BlockedUsersSection,
+  type BlockedUserItem,
+} from "@/components/BlockedUsersSection";
+import {
   countArchivedSoldListings,
   expireSoldListings,
 } from "@/lib/expire-sold-listings";
@@ -16,6 +20,7 @@ import { formatArchivedSoldCount, getSoldListingCutoffIso } from "@/lib/sold-lis
 import { getMyListingViewCounts } from "@/lib/listing-view-counts";
 import { getPublicImageUrl } from "@/lib/format";
 import { LISTING_IMAGE_BUCKET } from "@/lib/constants";
+import { PROFILE_IDENTITY_SELECT } from "@/lib/profile-display";
 import type { ListingWithImages, Profile } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -105,6 +110,41 @@ export default async function MyProfilePage({
       if (!listing) return false;
       return listing.status !== "removed";
     });
+
+  const { data: blockRows } = await supabase
+    .from("user_blocks")
+    .select(
+      `
+      blocked_id,
+      created_at,
+      blocked:blocked_id(${PROFILE_IDENTITY_SELECT}, avatar_url)
+    `
+    )
+    .eq("blocker_id", user.id)
+    .order("created_at", { ascending: false });
+
+  const blockedUsers: BlockedUserItem[] = (blockRows ?? [])
+    .map((row) => {
+      const raw = row.blocked as
+        | (BlockedUserItem["profile"] & { id: string; avatar_url: string | null })
+        | (BlockedUserItem["profile"] & { id: string; avatar_url: string | null })[]
+        | null;
+      const blocked = Array.isArray(raw) ? raw[0] : raw;
+      if (!blocked) return null;
+
+      return {
+        id: blocked.id,
+        blockedAt: row.created_at,
+        avatarUrl: blocked.avatar_url,
+        profile: {
+          display_name: blocked.display_name,
+          show_real_name: blocked.show_real_name,
+          marketplace_alias: blocked.marketplace_alias,
+          is_verified_berkeley: blocked.is_verified_berkeley,
+        },
+      };
+    })
+    .filter((item): item is BlockedUserItem => item !== null);
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
@@ -214,6 +254,8 @@ export default async function MyProfilePage({
           </div>
         )}
       </section>
+
+      <BlockedUsersSection users={blockedUsers} />
 
       <p className="text-center text-sm">
         <Link href={`/profile/${user.id}`} className="text-[#003262] underline">
