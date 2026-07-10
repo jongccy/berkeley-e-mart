@@ -15,7 +15,6 @@ import {
   PROFILE_IDENTITY_SELECT,
   resolveSellerDisplayName,
   profileIsVerified,
-  sellerProfileIsPublic,
 } from "@/lib/profile-display";
 import { StarRating } from "@/components/StarRating";
 import { SoldListingOverlay } from "@/components/SoldListingOverlay";
@@ -89,8 +88,10 @@ export default async function ListingDetailPage({
   const isOwner = user?.id === item.seller_id;
   const sellerName = resolveSellerDisplayName(item.profiles);
   const sellerVerified = profileIsVerified(item.profiles);
-  const showSellerProfile =
-    sellerProfileIsPublic(item.profiles) && !isOwner;
+  // Every seller's public profile is linkable. The profile page itself only
+  // ever renders public info (alias for nickname sellers), so this leaks
+  // nothing about sellers who chose to hide their real name.
+  const showSellerProfile = !isOwner;
   const images = [...(item.listing_images ?? [])].sort(
     (a, b) => a.sort_order - b.sort_order
   );

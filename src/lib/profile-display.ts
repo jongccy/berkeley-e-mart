@@ -32,6 +32,14 @@ export function sellerProfileIsPublic(
   return profile?.show_real_name !== false;
 }
 
+export function resolveProfileHandle(
+  profile: ProfilePublicIdentity | null
+): string {
+  const name = resolvePublicName(profile);
+  const handle = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return handle || "student";
+}
+
 export function profileIsVerified(
   profile: Pick<Profile, "is_verified_berkeley"> | null | undefined
 ): boolean {
