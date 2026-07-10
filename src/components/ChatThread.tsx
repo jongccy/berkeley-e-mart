@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { sendMessage } from "@/app/actions/chat";
 import { useMessaging } from "@/components/messaging/MessagingProvider";
 import { formatRelativeTime } from "@/lib/format";
@@ -12,6 +12,7 @@ type Props = {
   initialMessages: Message[];
   messagingDisabled?: boolean;
   messagingDisabledMessage?: string;
+  aboveComposer?: ReactNode;
 };
 
 export function ChatThread({
@@ -20,6 +21,7 @@ export function ChatThread({
   initialMessages,
   messagingDisabled = false,
   messagingDisabledMessage = "You can't message this user.",
+  aboveComposer,
 }: Props) {
   const { registerThreadHandler, setActiveConversationId } = useMessaging();
   const [messages, setMessages] = useState(initialMessages);
@@ -117,28 +119,33 @@ export function ChatThread({
           {error}
         </p>
       )}
-      {messagingDisabled ? (
-        <p className="border-t border-zinc-200 px-3 py-3 text-sm text-zinc-500 dark:border-zinc-800">
-          {messagingDisabledMessage}
-        </p>
-      ) : (
-      <form onSubmit={handleSend} className="flex gap-2 border-t border-zinc-200 p-3 dark:border-zinc-800">
-        <input
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          placeholder="Type a message..."
-          className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
-          autoComplete="off"
-        />
-        <button
-          type="submit"
-          disabled={sending}
-          className="rounded-lg bg-[#003262] px-4 py-2 text-sm text-white hover:bg-[#002244] disabled:opacity-50"
-        >
-          Send
-        </button>
-      </form>
-      )}
+      <div className="border-t border-zinc-200 dark:border-zinc-800">
+        {aboveComposer ? (
+          <div className="flex justify-center px-3 pt-3">{aboveComposer}</div>
+        ) : null}
+        {messagingDisabled ? (
+          <p className="px-3 py-3 text-sm text-zinc-500">
+            {messagingDisabledMessage}
+          </p>
+        ) : (
+          <form onSubmit={handleSend} className="flex gap-2 p-3">
+            <input
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder="Type a message..."
+              className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+              autoComplete="off"
+            />
+            <button
+              type="submit"
+              disabled={sending}
+              className="rounded-lg bg-[#003262] px-4 py-2 text-sm text-white hover:bg-[#002244] disabled:opacity-50"
+            >
+              Send
+            </button>
+          </form>
+        )}
+      </div>
     </div>
   );
 }

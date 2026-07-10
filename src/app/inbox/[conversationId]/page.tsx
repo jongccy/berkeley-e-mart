@@ -170,22 +170,6 @@ export default async function ConversationPage({
               listing.sold_at
             )}
           />
-          {!isBuyer && listing.status === "active" && (
-            <div className="flex justify-end">
-              <MarkAsSoldButton
-                conversationId={conversationId}
-                variant="inline"
-              />
-            </div>
-          )}
-          {!isBuyer && listing.status === "sold" && (
-            <div className="flex justify-end">
-              <MarkAsAvailableButton
-                conversationId={conversationId}
-                variant="inline"
-              />
-            </div>
-          )}
         </>
       ) : (
         <div>
@@ -207,6 +191,19 @@ export default async function ConversationPage({
         initialMessages={(messages ?? []) as Message[]}
         messagingDisabled={messagingBlocked}
         messagingDisabledMessage={BLOCKED_MESSAGING_MESSAGE}
+        aboveComposer={
+          !isBuyer && listing?.status === "active" ? (
+            <MarkAsSoldButton
+              conversationId={conversationId}
+              variant="inline"
+            />
+          ) : !isBuyer && listing?.status === "sold" ? (
+            <MarkAsAvailableButton
+              conversationId={conversationId}
+              variant="inline"
+            />
+          ) : null
+        }
       />
     </div>
   );
