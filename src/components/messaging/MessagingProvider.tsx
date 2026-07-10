@@ -47,6 +47,27 @@ type Props = {
   children: React.ReactNode;
 };
 
+function asMessage(payload: unknown): Message | null {
+  if (!payload || typeof payload !== "object") return null;
+  const row = payload as Partial<Message>;
+  if (
+    typeof row.id !== "string" ||
+    typeof row.conversation_id !== "string" ||
+    typeof row.sender_id !== "string" ||
+    typeof row.body !== "string" ||
+    typeof row.created_at !== "string"
+  ) {
+    return null;
+  }
+  return {
+    id: row.id,
+    conversation_id: row.conversation_id,
+    sender_id: row.sender_id,
+    body: row.body,
+    created_at: row.created_at,
+  };
+}
+
 export function MessagingProvider({
   userId,
   initialUnreadCount,
@@ -152,36 +173,23 @@ export function MessagingProvider({
       }
     }
 
-    async function subscribe() {
-      // Realtime uses a separate WebSocket auth context. Wait for the session
-      // and set it explicitly so RLS policies that use auth.uid() work in prod.
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+    async function subscribeWithAuth(accessToken: string) {
+      await supabase.realtime.setAuth(accessToken);
       if (cancelled) return;
-
-      if (session?.access_token) {
-        await supabase.realtime.setAuth(session.access_token);
-      }
 
       if (channel) {
         await supabase.removeChannel(channel);
         channel = null;
       }
 
+      // Private per-user topic — messages are pushed from a DB trigger via
+      // realtime.send, so every recipient gets events (not just some RLS paths).
       channel = supabase
-        .channel(`user-messages:${userId}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "messages",
-          },
-          (payload) => {
-            void handleIncomingMessage(payload.new as Message);
-          }
-        )
+        .channel(`inbox:${userId}`, { config: { private: true } })
+        .on("broadcast", { event: "new_message" }, ({ payload }) => {
+          const message = asMessage(payload);
+          if (message) void handleIncomingMessage(message);
+        })
         .subscribe((status, err) => {
           if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
             console.error("Messaging realtime subscribe failed:", status, err);
@@ -189,15 +197,17 @@ export function MessagingProvider({
         });
     }
 
-    void subscribe();
-
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "TOKEN_REFRESHED" || event === "SIGNED_IN") {
-        if (session?.access_token) {
-          void supabase.realtime.setAuth(session.access_token);
-        }
+      if (cancelled) return;
+      if (
+        session?.access_token &&
+        (event === "INITIAL_SESSION" ||
+          event === "SIGNED_IN" ||
+          event === "TOKEN_REFRESHED")
+      ) {
+        void subscribeWithAuth(session.access_token);
       }
     });
 
