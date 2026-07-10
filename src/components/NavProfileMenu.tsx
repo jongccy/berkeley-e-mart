@@ -82,19 +82,6 @@ export function NavProfileMenu({ avatarUrl }: Props) {
           >
             Saved
           </Link>
-          <Link
-            href="/inbox"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="flex items-center justify-between gap-3 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-900"
-          >
-            <span>Inbox</span>
-            {unreadCount > 0 && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#003262] px-1.5 text-[11px] font-semibold text-white">
-                {unreadCount > 99 ? "99+" : unreadCount}
-              </span>
-            )}
-          </Link>
           <form action={signOut}>
             <button
               type="submit"
