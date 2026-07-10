@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { GeistPixelSquare } from "geist/font/pixel";
 import { Nav } from "@/components/Nav";
+import { MessagingProvider } from "@/components/messaging/MessagingProvider";
 import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 import { VerifyBanner } from "@/components/VerifyBanner";
 import { SITE_NAME } from "@/lib/constants";
+import { getUnreadInboxCount } from "@/lib/inbox-unread";
 import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
 
@@ -24,6 +26,42 @@ export default async function RootLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
+  let initialUnreadCount = 0;
+  if (user) {
+    initialUnreadCount = await getUnreadInboxCount(supabase);
+  }
+
+  const shell = (
+    <>
+      <Nav />
+      <VerifyBanner user={user} />
+      <main className="flex-1">{children}</main>
+      <footer className="space-y-2 bg-[#003262] py-6 text-center text-xs text-white/90">
+        <p>
+          {SITE_NAME} — Buy and Sell with verified Berkeley affiliates.
+        </p>
+        <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+          <Link
+            href="/terms"
+            className="text-[#FDB515] underline hover:text-[#ffe08a]"
+          >
+            Terms of Service
+          </Link>
+          <span className="text-white/50" aria-hidden>
+            ·
+          </span>
+          <Link
+            href="/privacy"
+            className="text-[#FDB515] underline hover:text-[#ffe08a]"
+          >
+            Privacy Policy
+          </Link>
+        </p>
+      </footer>
+      <ScrollToTopButton />
+    </>
+  );
+
   return (
     <html
       lang="en"
@@ -33,32 +71,16 @@ export default async function RootLayout({
         suppressHydrationWarning
         className="min-h-full flex flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100"
       >
-        <Nav />
-        <VerifyBanner user={user} />
-        <main className="flex-1">{children}</main>
-        <footer className="space-y-2 bg-[#003262] py-6 text-center text-xs text-white/90">
-          <p>
-            {SITE_NAME} — Buy and Sell with verified Berkeley affiliates.
-          </p>
-          <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
-            <Link
-              href="/terms"
-              className="text-[#FDB515] underline hover:text-[#ffe08a]"
-            >
-              Terms of Service
-            </Link>
-            <span className="text-white/50" aria-hidden>
-              ·
-            </span>
-            <Link
-              href="/privacy"
-              className="text-[#FDB515] underline hover:text-[#ffe08a]"
-            >
-              Privacy Policy
-            </Link>
-          </p>
-        </footer>
-        <ScrollToTopButton />
+        {user ? (
+          <MessagingProvider
+            userId={user.id}
+            initialUnreadCount={initialUnreadCount}
+          >
+            {shell}
+          </MessagingProvider>
+        ) : (
+          shell
+        )}
       </body>
     </html>
   );

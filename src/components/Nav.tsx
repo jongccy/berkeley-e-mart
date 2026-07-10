@@ -2,7 +2,6 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CalketLogo } from "@/components/CalketLogo";
 import { NavProfileMenu } from "@/components/NavProfileMenu";
-import { getUnreadInboxCount } from "@/lib/inbox-unread";
 
 export async function Nav() {
   const supabase = await createClient();
@@ -11,7 +10,6 @@ export async function Nav() {
   } = await supabase.auth.getUser();
 
   let avatarUrl: string | null = null;
-  let unreadInboxCount = 0;
 
   if (user) {
     const { data: profile } = await supabase
@@ -24,8 +22,6 @@ export async function Nav() {
       profile?.avatar_url ??
       (user.user_metadata?.avatar_url as string | undefined) ??
       null;
-
-    unreadInboxCount = await getUnreadInboxCount(supabase);
   }
 
   return (
@@ -52,10 +48,7 @@ export async function Nav() {
                   Sell
                 </Link>
               </div>
-              <NavProfileMenu
-                avatarUrl={avatarUrl}
-                unreadInboxCount={unreadInboxCount}
-              />
+              <NavProfileMenu avatarUrl={avatarUrl} />
             </>
           ) : (
             <div className="flex items-center gap-2.5">

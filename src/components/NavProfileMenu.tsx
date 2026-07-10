@@ -4,16 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { signOut } from "@/app/actions/auth";
 import { ProfileAvatar } from "@/components/ProfileAvatar";
+import { useMessaging } from "@/components/messaging/MessagingProvider";
 
 type Props = {
   avatarUrl: string | null;
-  unreadInboxCount?: number;
 };
 
-export function NavProfileMenu({
-  avatarUrl,
-  unreadInboxCount = 0,
-}: Props) {
+export function NavProfileMenu({ avatarUrl }: Props) {
+  const { unreadCount } = useMessaging();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -46,12 +44,21 @@ export function NavProfileMenu({
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className="rounded-full ring-offset-2 hover:ring-2 hover:ring-[#003262]/30 focus:outline-none focus:ring-2 focus:ring-[#003262] dark:hover:ring-[#FDB515]/30 dark:focus:ring-[#FDB515]"
-        aria-label="Account menu"
+        className="relative rounded-full ring-offset-2 hover:ring-2 hover:ring-[#003262]/30 focus:outline-none focus:ring-2 focus:ring-[#003262] dark:hover:ring-[#FDB515]/30 dark:focus:ring-[#FDB515]"
+        aria-label={
+          unreadCount > 0
+            ? `Account menu, ${unreadCount} unread messages`
+            : "Account menu"
+        }
         aria-haspopup="menu"
         aria-expanded={open}
       >
         <ProfileAvatar avatarUrl={avatarUrl} size="xs" />
+        {unreadCount > 0 && (
+          <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white ring-2 ring-white dark:ring-zinc-950">
+            {unreadCount > 99 ? "99+" : unreadCount}
+          </span>
+        )}
       </button>
 
       {open && (
@@ -74,9 +81,9 @@ export function NavProfileMenu({
             className="flex items-center justify-between gap-3 px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-900"
           >
             <span>Inbox</span>
-            {unreadInboxCount > 0 && (
+            {unreadCount > 0 && (
               <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#003262] px-1.5 text-[11px] font-semibold text-white">
-                {unreadInboxCount > 99 ? "99+" : unreadInboxCount}
+                {unreadCount > 99 ? "99+" : unreadCount}
               </span>
             )}
           </Link>

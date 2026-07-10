@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { sendMessage } from "@/app/actions/chat";
-import { createClient } from "@/lib/supabase/client";
+import { useMessaging } from "@/components/messaging/MessagingProvider";
 import { formatRelativeTime } from "@/lib/format";
 import type { Message } from "@/types/database";
 
@@ -22,7 +21,7 @@ export function ChatThread({
   messagingDisabled = false,
   messagingDisabledMessage = "You can't message this user.",
 }: Props) {
-  const router = useRouter();
+  const { registerThreadHandler, setActiveConversationId } = useMessaging();
   const [messages, setMessages] = useState(initialMessages);
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
@@ -30,35 +29,26 @@ export function ChatThread({
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages]);
+
+  useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   useEffect(() => {
-    const supabase = createClient();
-    const channel = supabase
-      .channel(`conversation:${conversationId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        (payload) => {
-          const newMsg = payload.new as Message;
-          setMessages((prev) => {
-            if (prev.some((m) => m.id === newMsg.id)) return prev;
-            return [...prev, newMsg];
-          });
-        }
-      )
-      .subscribe();
+    setActiveConversationId(conversationId);
+    return () => setActiveConversationId(null);
+  }, [conversationId, setActiveConversationId]);
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [conversationId]);
+  useEffect(() => {
+    return registerThreadHandler(conversationId, (newMsg) => {
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === newMsg.id)) return prev;
+        return [...prev, newMsg];
+      });
+    });
+  }, [conversationId, registerThreadHandler]);
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
@@ -86,7 +76,6 @@ export function ChatThread({
     }
 
     setBody("");
-    router.refresh();
   }
 
   return (
