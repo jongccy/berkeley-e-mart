@@ -3,7 +3,7 @@ import { ListingImageGallery } from "@/components/ListingImageGallery";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { MessageSellerButton } from "@/components/MessageSellerButton";
-import { logListingView, markListingSold, removeListing } from "@/app/actions/listings";
+import { logListingView, markListingAvailable, markListingSold, removeListing } from "@/app/actions/listings";
 import {
   formatCategory,
   formatListingPrice,
@@ -17,11 +17,11 @@ import {
   profileIsVerified,
 } from "@/lib/profile-display";
 import { StarRating } from "@/components/StarRating";
-import { SoldListingOverlay } from "@/components/SoldListingOverlay";
 import { ListingStatusBadge } from "@/components/ListingStatusBadge";
 import { ListingTags } from "@/components/ListingTags";
 import { ListingLikeButton } from "@/components/ListingLikeButton";
 import { MarkAsSoldButton } from "@/components/MarkAsSoldButton";
+import { MarkAsAvailableButton } from "@/components/MarkAsAvailableButton";
 import { DeleteListingButton } from "@/components/DeleteListingButton";
 import { ReportButton } from "@/components/ReportButton";
 import { BlockUserButton } from "@/components/BlockUserButton";
@@ -42,10 +42,18 @@ export default async function ListingDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string; marked_sold?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    marked_sold?: string;
+    marked_available?: string;
+  }>;
 }) {
   const { id } = await params;
-  const { error: urlError, marked_sold: markedSold } = await searchParams;
+  const {
+    error: urlError,
+    marked_sold: markedSold,
+    marked_available: markedAvailable,
+  } = await searchParams;
   const supabase = await createClient();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 
@@ -140,19 +148,22 @@ export default async function ListingDetailPage({
       )}
       {(markedSold === "1" || (isOwner && item.status === "sold")) && (
         <p className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-200">
-          This listing is marked as sold. It will come down in 24 hours.
+          This listing is marked as sold. It will come down in 24 hours. You can
+          mark it available again anytime before then.
+        </p>
+      )}
+      {markedAvailable === "1" && (
+        <p className="mb-4 rounded-lg bg-green-50 p-3 text-sm text-green-800 dark:bg-green-950 dark:text-green-200">
+          This listing is active again.
         </p>
       )}
 
-      <div
-        className={`grid gap-8 lg:grid-cols-2${item.status === "sold" ? " relative" : ""}`}
-      >
-        {item.status === "sold" && <SoldListingOverlay />}
-        <div className="relative z-[2]">
+      <div className="grid gap-8 lg:grid-cols-2">
+        <div>
           <ListingImageGallery images={galleryImages} alt={item.title} />
         </div>
 
-        <div className="relative z-[2] space-y-4">
+        <div className="space-y-4">
           <span className="rounded bg-[#003262] px-2 py-0.5 text-xs text-white">
             {formatCategory(item.category)}
           </span>
@@ -313,6 +324,17 @@ export default async function ListingDetailPage({
                 action={removeListing.bind(null, item.id)}
               />
               <MarkAsSoldButton action={markListingSold.bind(null, item.id)} />
+            </div>
+          )}
+
+          {isOwner && item.status === "sold" && (
+            <div className="flex flex-wrap gap-3">
+              <MarkAsAvailableButton
+                action={markListingAvailable.bind(null, item.id)}
+              />
+              <DeleteListingButton
+                action={removeListing.bind(null, item.id)}
+              />
             </div>
           )}
         </div>

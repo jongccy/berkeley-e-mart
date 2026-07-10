@@ -6,6 +6,7 @@ import { MarkConversationRead } from "@/components/MarkConversationRead";
 import { ReportButton } from "@/components/ReportButton";
 import { BlockUserButton } from "@/components/BlockUserButton";
 import { MarkAsSoldButton } from "@/components/MarkAsSoldButton";
+import { MarkAsAvailableButton } from "@/components/MarkAsAvailableButton";
 import { DisplayNameWithBadge } from "@/components/DisplayNameWithBadge";
 import {
   ConversationListingHeader,
@@ -172,6 +173,14 @@ export default async function ConversationPage({
           {!isBuyer && listing.status === "active" && (
             <div className="flex justify-end">
               <MarkAsSoldButton
+                conversationId={conversationId}
+                variant="inline"
+              />
+            </div>
+          )}
+          {!isBuyer && listing.status === "sold" && (
+            <div className="flex justify-end">
+              <MarkAsAvailableButton
                 conversationId={conversationId}
                 variant="inline"
               />

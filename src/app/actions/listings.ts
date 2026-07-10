@@ -538,6 +538,48 @@ export async function markListingSold(listingId: string) {
   redirect(`/listings/${listingId}?marked_sold=1`);
 }
 
+export async function markListingAvailable(listingId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const { data: listing } = await supabase
+    .from("listings")
+    .select("id, status")
+    .eq("id", listingId)
+    .eq("seller_id", user.id)
+    .single();
+
+  if (!listing) {
+    redirect(`/listings/${listingId}?error=${encodeURIComponent("Listing not found.")}`);
+  }
+
+  if (listing.status !== "sold") {
+    redirect(
+      `/listings/${listingId}?error=${encodeURIComponent("Only sold listings can be marked available.")}`
+    );
+  }
+
+  const { error } = await supabase
+    .from("listings")
+    .update({ status: "active", sold_at: null })
+    .eq("id", listingId)
+    .eq("seller_id", user.id);
+
+  if (error) {
+    redirect(`/listings/${listingId}?error=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePath(`/listings/${listingId}`);
+  revalidatePath(`/profile/${user.id}`);
+  revalidatePath("/profile/me");
+  revalidatePath("/");
+  redirect(`/listings/${listingId}?marked_available=1`);
+}
+
 export async function markListingSoldFromConversation(
   conversationId: string
 ): Promise<{ error?: string }> {
@@ -578,6 +620,59 @@ export async function markListingSoldFromConversation(
   const { error } = await supabase
     .from("listings")
     .update({ status: "sold", sold_at: soldAt })
+    .eq("id", conversation.listing_id)
+    .eq("seller_id", user.id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath(`/inbox/${conversationId}`);
+  revalidatePath("/inbox");
+  revalidatePath(`/listings/${conversation.listing_id}`);
+  revalidatePath(`/profile/${user.id}`);
+  revalidatePath("/profile/me");
+  revalidatePath("/");
+
+  return {};
+}
+
+export async function markListingAvailableFromConversation(
+  conversationId: string
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Sign in to mark this item available." };
+
+  const { data: conversation } = await supabase
+    .from("conversations")
+    .select("id, listing_id, seller_id")
+    .eq("id", conversationId)
+    .single();
+
+  if (!conversation?.listing_id) {
+    return { error: "This chat is not linked to a listing." };
+  }
+
+  if (conversation.seller_id !== user.id) {
+    return { error: "Only the seller can mark this item available." };
+  }
+
+  const { data: listing } = await supabase
+    .from("listings")
+    .select("id, status")
+    .eq("id", conversation.listing_id)
+    .single();
+
+  if (!listing) return { error: "Listing not found." };
+  if (listing.status !== "sold") {
+    return { error: "This listing is not marked as sold." };
+  }
+
+  const { error } = await supabase
+    .from("listings")
+    .update({ status: "active", sold_at: null })
     .eq("id", conversation.listing_id)
     .eq("seller_id", user.id);
 
