@@ -118,52 +118,95 @@ export function MessagingProvider({
 
   useEffect(() => {
     const supabase = createClient();
+    let cancelled = false;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    const channel = supabase
-      .channel(`user-messages:${userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-        },
-        async (payload) => {
-          const message = payload.new as Message;
-          if (message.sender_id === userId) return;
+    async function handleIncomingMessage(message: Message) {
+      if (message.sender_id === userId) return;
 
-          const threadHandlers = threadHandlersRef.current.get(
-            message.conversation_id
-          );
-          threadHandlers?.forEach((handler) => handler(message));
-          inboxHandlersRef.current.forEach((handler) => handler(message));
+      const threadHandlers = threadHandlersRef.current.get(
+        message.conversation_id
+      );
+      threadHandlers?.forEach((handler) => handler(message));
+      inboxHandlersRef.current.forEach((handler) => handler(message));
 
-          const isViewingThread =
-            activeConversationIdRef.current === message.conversation_id;
+      const isViewingThread =
+        activeConversationIdRef.current === message.conversation_id;
 
-          if (!isViewingThread) {
-            void refreshUnreadCount();
+      if (!isViewingThread) {
+        void refreshUnreadCount();
 
-            const { data: profile } = await supabase
-              .from("profiles")
-              .select(
-                "display_name, show_real_name, marketplace_alias, is_verified_berkeley"
-              )
-              .eq("id", message.sender_id)
-              .maybeSingle();
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select(
+            "display_name, show_real_name, marketplace_alias, is_verified_berkeley"
+          )
+          .eq("id", message.sender_id)
+          .maybeSingle();
 
-            pushToast({
-              conversationId: message.conversation_id,
-              senderName: resolvePublicName(profile),
-              body: message.body,
-            });
+        pushToast({
+          conversationId: message.conversation_id,
+          senderName: resolvePublicName(profile),
+          body: message.body,
+        });
+      }
+    }
+
+    async function subscribe() {
+      // Realtime uses a separate WebSocket auth context. Wait for the session
+      // and set it explicitly so RLS policies that use auth.uid() work in prod.
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (cancelled) return;
+
+      if (session?.access_token) {
+        await supabase.realtime.setAuth(session.access_token);
+      }
+
+      if (channel) {
+        await supabase.removeChannel(channel);
+        channel = null;
+      }
+
+      channel = supabase
+        .channel(`user-messages:${userId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "messages",
+          },
+          (payload) => {
+            void handleIncomingMessage(payload.new as Message);
           }
+        )
+        .subscribe((status, err) => {
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+            console.error("Messaging realtime subscribe failed:", status, err);
+          }
+        });
+    }
+
+    void subscribe();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "TOKEN_REFRESHED" || event === "SIGNED_IN") {
+        if (session?.access_token) {
+          void supabase.realtime.setAuth(session.access_token);
         }
-      )
-      .subscribe();
+      }
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      subscription.unsubscribe();
+      if (channel) {
+        void supabase.removeChannel(channel);
+      }
     };
   }, [userId, pushToast, refreshUnreadCount]);
 
