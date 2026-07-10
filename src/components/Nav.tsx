@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CalketLogo } from "@/components/CalketLogo";
+import { NavInboxLink } from "@/components/NavInboxLink";
 import { NavProfileMenu } from "@/components/NavProfileMenu";
 
 export async function Nav() {
@@ -47,6 +48,10 @@ export async function Nav() {
                 <Link href="/listings/new" className="hover:underline">
                   Sell
                 </Link>
+                <span className="font-normal text-zinc-300 dark:text-zinc-600" aria-hidden>
+                  |
+                </span>
+                <NavInboxLink />
               </div>
               <NavProfileMenu avatarUrl={avatarUrl} />
             </>

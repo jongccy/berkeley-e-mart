@@ -83,18 +83,32 @@ export function InboxConversationList({
           },
         };
 
-        updated.sort(
-          (a, b) =>
+        updated.sort((a, b) => {
+          const aUnread = isMessageUnread(a.lastMessage, userId, a.lastReadAt);
+          const bUnread = isMessageUnread(b.lastMessage, userId, b.lastReadAt);
+          if (aUnread !== bUnread) return aUnread ? -1 : 1;
+          return (
             new Date(b.lastMessageAt).getTime() -
             new Date(a.lastMessageAt).getTime()
-        );
+          );
+        });
 
         return updated;
       });
     });
-  }, [registerInboxHandler]);
+  }, [registerInboxHandler, userId]);
 
-  const rows = useMemo(() => conversations, [conversations]);
+  const rows = useMemo(() => {
+    return [...conversations].sort((a, b) => {
+      const aUnread = isMessageUnread(a.lastMessage, userId, a.lastReadAt);
+      const bUnread = isMessageUnread(b.lastMessage, userId, b.lastReadAt);
+      if (aUnread !== bUnread) return aUnread ? -1 : 1;
+      return (
+        new Date(b.lastMessageAt).getTime() -
+        new Date(a.lastMessageAt).getTime()
+      );
+    });
+  }, [conversations, userId]);
 
   if (rows.length === 0) {
     return (
@@ -126,7 +140,9 @@ export function InboxConversationList({
           <li
             key={c.id}
             className={`flex items-start gap-3 px-4 py-4 hover:bg-zinc-50 dark:hover:bg-zinc-900 ${
-              unread ? "bg-[#003262]/5" : ""
+              unread
+                ? "border-l-4 border-l-[#003262] bg-[#003262]/[0.07] dark:border-l-[#FDB515] dark:bg-[#FDB515]/10"
+                : "border-l-4 border-l-transparent"
             }${isSoldThread ? " relative" : ""}`}
           >
             {isSoldThread && <SoldListingOverlay />}
@@ -147,15 +163,18 @@ export function InboxConversationList({
               <Link href={`/inbox/${c.id}`} className="block">
                 <div className="flex flex-wrap items-center gap-2">
                   <p
-                    className={`font-medium ${unread ? "text-[#003262]" : ""}`}
+                    className={`font-medium ${
+                      unread
+                        ? "font-semibold text-[#003262] dark:text-[#FDB515]"
+                        : ""
+                    }`}
                   >
                     {threadTitle}
                   </p>
                   {unread && (
-                    <span
-                      className="h-2 w-2 rounded-full bg-[#003262]"
-                      aria-hidden
-                    />
+                    <span className="rounded-full bg-[#003262] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white dark:bg-[#FDB515] dark:text-[#003262]">
+                      New
+                    </span>
                   )}
                   {listingStatus && (
                     <ListingStatusBadge status={listingStatus} />
@@ -169,7 +188,13 @@ export function InboxConversationList({
                   />
                 </p>
                 {c.lastMessage ? (
-                  <p className="mt-1 truncate text-sm text-zinc-600 dark:text-zinc-400">
+                  <p
+                    className={`mt-1 truncate text-sm ${
+                      unread
+                        ? "font-medium text-zinc-900 dark:text-zinc-100"
+                        : "text-zinc-600 dark:text-zinc-400"
+                    }`}
+                  >
                     {c.lastMessage.sender_id === userId ? "You: " : ""}
                     {c.lastMessage.body}
                   </p>
@@ -188,9 +213,23 @@ export function InboxConversationList({
                 </Link>
               ) : null}
             </div>
-            <span className="relative z-[2] shrink-0 text-xs text-zinc-400">
-              {formatRelativeTime(c.lastMessageAt)}
-            </span>
+            <div className="relative z-[2] flex shrink-0 flex-col items-end gap-1">
+              <span
+                className={`text-xs ${
+                  unread
+                    ? "font-semibold text-[#003262] dark:text-[#FDB515]"
+                    : "text-zinc-400"
+                }`}
+              >
+                {formatRelativeTime(c.lastMessageAt)}
+              </span>
+              {unread && (
+                <span
+                  className="h-2.5 w-2.5 rounded-full bg-[#003262] dark:bg-[#FDB515]"
+                  aria-label="Unread"
+                />
+              )}
+            </div>
           </li>
         );
       })}
