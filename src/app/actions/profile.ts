@@ -32,6 +32,37 @@ export async function updateProfile(
     };
   }
 
+  if (marketplace_alias) {
+    if (marketplace_alias.length < 3) {
+      return { error: "Marketplace ID must be at least 3 characters." };
+    }
+    if (marketplace_alias.length > 40) {
+      return { error: "Marketplace ID must be 40 characters or fewer." };
+    }
+    if (!/^[a-zA-Z0-9._-]+$/.test(marketplace_alias)) {
+      return {
+        error:
+          "Marketplace ID can only use letters, numbers, periods, underscores, and hyphens.",
+      };
+    }
+
+    const { data: taken, error: takenError } = await supabase.rpc(
+      "is_marketplace_alias_taken",
+      {
+        alias: marketplace_alias,
+        exclude_user_id: user.id,
+      }
+    );
+
+    if (takenError) {
+      return { error: takenError.message };
+    }
+
+    if (taken) {
+      return { error: "That marketplace ID is already taken. Try another." };
+    }
+  }
+
   const { error } = await supabase
     .from("profiles")
     .update({
@@ -43,6 +74,9 @@ export async function updateProfile(
     .eq("id", user.id);
 
   if (error) {
+    if (error.code === "23505") {
+      return { error: "That marketplace ID is already taken. Try another." };
+    }
     return { error: error.message };
   }
 

@@ -317,11 +317,11 @@ export default async function BrowsePage({
 
             <div className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                Minimum rating
+                Item condition
               </p>
               <div className="space-y-1.5">
                 {[
-                  { value: "", label: "Any rating" },
+                  { value: "", label: "Any condition" },
                   { value: "4", label: "★ 4 & up" },
                   { value: "3", label: "★ 3 & up" },
                   { value: "2", label: "★ 2 & up" },

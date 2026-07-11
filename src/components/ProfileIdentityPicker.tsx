@@ -73,11 +73,14 @@ export function ProfileIdentityPicker({
             onChange={(e) => onMarketplaceAliasChange(e.target.value)}
             placeholder="e.g. CalBear2026"
             maxLength={40}
+            minLength={3}
+            pattern="[a-zA-Z0-9._\-]+"
+            title="Letters, numbers, periods, underscores, and hyphens only"
             className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
           />
           {identityMode === "alias" && (
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              {IDENTITY_DESCRIPTIONS.alias}
+              {IDENTITY_DESCRIPTIONS.alias} IDs must be unique.
             </p>
           )}
         </div>

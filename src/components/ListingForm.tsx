@@ -110,7 +110,7 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
 
     if (qualityRating < 1 || qualityRating > 5) {
       event.preventDefault();
-      setQualityError("Select a quality rating from 1 to 5 stars.");
+      setQualityError("Select a condition rating from 1 to 5 stars.");
       return;
     }
 
@@ -344,7 +344,10 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
       )}
 
       <div>
-        <label className="mb-2 block text-sm font-medium">Quality</label>
+        <label className="mb-2 block text-sm font-medium">Condition</label>
+        <p className="mb-2 text-xs text-zinc-500">
+          How would you rate this item&apos;s physical condition?
+        </p>
         <QualityStars
           value={qualityRating}
           onChange={(value) => {

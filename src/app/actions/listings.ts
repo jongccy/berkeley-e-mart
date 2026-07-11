@@ -389,7 +389,7 @@ function validateListingData(
     return "Price is required.";
   }
   if (!data.quality_rating) {
-    return "Select a quality rating from 1 to 5 stars.";
+    return "Select a condition rating from 1 to 5 stars.";
   }
   if (data.category === HOUSING_CATEGORY) {
     const locationError = validateExactHousingLocation(data.address_area ?? "");
