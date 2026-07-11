@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
-import { GeistPixelSquare } from "geist/font/pixel";
 import { Nav } from "@/components/Nav";
 import { MessagingProvider } from "@/components/messaging/MessagingProvider";
 import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 import { VerifyBanner } from "@/components/VerifyBanner";
 import { SITE_NAME } from "@/lib/constants";
+import { geistPixel, nunito } from "@/lib/fonts";
 import { getUnreadInboxCount } from "@/lib/inbox-unread";
 import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
@@ -66,11 +66,11 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${GeistPixelSquare.variable} ${GeistPixelSquare.className} h-full antialiased`}
+      className={`${nunito.variable} ${geistPixel.variable} h-full antialiased`}
     >
       <body
         suppressHydrationWarning
-        className="min-h-full flex flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100"
+        className={`${nunito.className} flex min-h-full flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100`}
       >
         {user ? (
           <MessagingProvider

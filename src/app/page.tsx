@@ -106,7 +106,7 @@ export default async function HomePage({
       <BrowseHero searchParams={params} />
 
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-8">
-        <h1 className="text-2xl font-bold text-[#003262] dark:text-[#FDB515]">
+        <h1 className="font-pixel text-2xl font-bold text-[#003262] dark:text-[#FDB515]">
           Browse
         </h1>
 

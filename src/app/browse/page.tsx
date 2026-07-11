@@ -151,7 +151,9 @@ export default async function BrowsePage({
       {/* Hero */}
       <section className="bg-[#003262] px-4 py-10 sm:py-12">
         <div className="mx-auto max-w-6xl">
-          <h1 className="text-3xl font-bold text-white sm:text-4xl">Browse Posts</h1>
+          <h1 className="font-pixel text-3xl font-bold text-white sm:text-4xl">
+            Browse Posts
+          </h1>
 
           <form method="get" action="/browse" className="mt-6 max-w-2xl">
             {/* preserve active filters when searching */}

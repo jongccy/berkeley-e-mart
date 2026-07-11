@@ -30,6 +30,16 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
+
+  // Supabase sometimes returns the OAuth code to Site URL (/) if redirect
+  // allow-list / Site URL is misconfigured. Forward it to the real callback.
+  const authCode = request.nextUrl.searchParams.get("code");
+  if (authCode && path === "/") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/callback";
+    return NextResponse.redirect(url);
+  }
+
   const authPaths = ["/login", "/signup", "/accept-terms", "/auth/callback"];
   const isAuthPath = authPaths.some(
     (authPath) => path === authPath || path.startsWith(`${authPath}/`)

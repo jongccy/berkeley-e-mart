@@ -32,7 +32,7 @@ export async function Nav() {
         <nav className="ml-auto flex shrink-0 items-center gap-4">
           {user ? (
             <>
-              <div className="flex items-center gap-4 text-lg font-semibold text-[#003262] dark:text-[#FDB515]">
+              <div className="font-pixel flex items-center gap-4 text-lg font-semibold text-[#003262] dark:text-[#FDB515]">
                 <Link href="/browse" className="hover:underline">
                   Browse
                 </Link>
