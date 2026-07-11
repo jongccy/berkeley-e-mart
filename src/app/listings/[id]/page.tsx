@@ -297,8 +297,8 @@ export default async function ListingDetailPage({
             </dl>
           )}
 
-          {!isOwner && canLike && (
-            <div className="flex flex-wrap items-center gap-4">
+          {!isOwner && (
+            <div className="flex w-full flex-col gap-3 sm:max-w-sm">
               <MessageSellerButton
                 listingId={item.id}
                 sellerId={item.seller_id}
@@ -308,7 +308,7 @@ export default async function ListingDetailPage({
                 existingConversationId={existingConversationId}
                 messagingBlocked={messagingBlocked}
               />
-              <ReportButton kind="listing" listingId={item.id} />
+              {canLike && <ReportButton kind="listing" listingId={item.id} />}
             </div>
           )}
 
