@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Analytics } from "@vercel/analytics/next";
 import { GeistPixelSquare } from "geist/font/pixel";
 import { Nav } from "@/components/Nav";
 import { MessagingProvider } from "@/components/messaging/MessagingProvider";
@@ -81,6 +82,7 @@ export default async function RootLayout({
         ) : (
           shell
         )}
+        <Analytics />
       </body>
     </html>
   );
