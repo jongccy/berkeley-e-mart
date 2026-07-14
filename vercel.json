@@ -1,4 +1,12 @@
 {
   "framework": "nextjs",
-  "buildCommand": "npm run build"
+  "buildCommand": "npm run build",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "calketnew.vercel.app" }],
+      "destination": "https://calket.org/:path*",
+      "permanent": true
+    }
+  ]
 }
