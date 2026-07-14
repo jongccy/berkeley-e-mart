@@ -15,6 +15,7 @@ import {
   type HousingFilterParams,
 } from "@/lib/housing-browse-filters";
 import { HousingBrowseFilters } from "@/components/HousingBrowseFilters";
+import { SortMenu } from "@/components/SortMenu";
 import type { ListingWithImages } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +29,6 @@ type SearchParams = HousingFilterParams & {
   category?: string | string[];
   min_price?: string;
   max_price?: string;
-  has_photos?: string;
   rating?: string;
   sort?: string;
   limit?: string;
@@ -54,7 +54,6 @@ function buildHref(params: SearchParams, overrides: Record<string, string | stri
   for (const cat of toArray(merged.category)) search.append("category", cat);
   if (merged.min_price) search.set("min_price", merged.min_price);
   if (merged.max_price) search.set("max_price", merged.max_price);
-  if (merged.has_photos) search.set("has_photos", merged.has_photos);
   if (merged.rating) search.set("rating", merged.rating);
   if (merged.sort && merged.sort !== "recent") search.set("sort", merged.sort);
   if (merged.limit) search.set("limit", merged.limit);
@@ -80,7 +79,6 @@ export default async function BrowsePage({
   } = await supabase.auth.getUser();
 
   const selectedCategories = toArray(params.category);
-  const hasPhotos = params.has_photos === "on";
   const minRating = parseInt(params.rating ?? "", 10);
   const sort: SortKey =
     params.sort === "price_asc" || params.sort === "price_desc"
@@ -94,12 +92,11 @@ export default async function BrowsePage({
       : PAGE_SIZE;
 
   const soldCutoff = getSoldListingCutoffIso();
-  const imagesJoin = hasPhotos ? "listing_images!inner(*)" : "listing_images(*)";
 
   let query = supabase
     .from("listings")
     .select(
-      `*, ${imagesJoin}, profiles:seller_id(${PROFILE_IDENTITY_SELECT})`,
+      `*, listing_images(*), profiles:seller_id(${PROFILE_IDENTITY_SELECT})`,
       { count: "exact" }
     )
     .or(`status.eq.active,and(status.eq.sold,sold_at.gte.${soldCutoff})`)
@@ -166,7 +163,6 @@ export default async function BrowsePage({
             {params.max_price && (
               <input type="hidden" name="max_price" value={params.max_price} />
             )}
-            {hasPhotos && <input type="hidden" name="has_photos" value="on" />}
             {params.rating && (
               <input type="hidden" name="rating" value={params.rating} />
             )}
@@ -203,28 +199,18 @@ export default async function BrowsePage({
 
       {/* Sort */}
       <div className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="mx-auto flex max-w-6xl justify-end px-4 py-2">
-          <div className="flex items-center gap-2">
-            {SORT_OPTIONS.map((opt) => {
-              const isActive = sort === opt.value;
-              return (
-                <Link
-                  key={opt.value}
-                  href={buildHref(params, {
-                    sort: opt.value,
-                    limit: undefined,
-                  })}
-                  className={`rounded-full px-3 py-1 text-xs font-medium transition ${
-                    isActive
-                      ? "bg-[#003262] text-white"
-                      : "text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                  }`}
-                >
-                  {opt.label}
-                </Link>
-              );
-            })}
-          </div>
+        <div className="mx-auto flex max-w-6xl justify-end px-4 py-2.5">
+          <SortMenu
+            activeValue={sort}
+            options={SORT_OPTIONS.map((opt) => ({
+              value: opt.value,
+              label: opt.label,
+              href: buildHref(params, {
+                sort: opt.value,
+                limit: undefined,
+              }),
+            }))}
+          />
         </div>
       </div>
 
@@ -251,16 +237,6 @@ export default async function BrowsePage({
                 Clear
               </Link>
             </div>
-
-            <label className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
-              <input
-                type="checkbox"
-                name="has_photos"
-                defaultChecked={hasPhotos}
-                className="h-4 w-4 rounded border-zinc-300 accent-[#003262]"
-              />
-              Has photos
-            </label>
 
             <div className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">

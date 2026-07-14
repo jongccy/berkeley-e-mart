@@ -49,7 +49,7 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
   const defaultCategory =
     listing?.price_cents === 0
       ? FREE_CATEGORY
-      : (listing?.category ?? OTHER_CATEGORY);
+      : (listing?.category ?? "");
   const [category, setCategory] = useState(defaultCategory);
   const [qualityRating, setQualityRating] = useState(
     listing?.quality_rating && listing.quality_rating >= 1
@@ -177,6 +177,9 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
             }}
             className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
           >
+            <option value="" disabled>
+              Choose Category
+            </option>
             {CATEGORIES.map((c) => (
               <option key={c.value} value={c.value}>
                 {c.label}

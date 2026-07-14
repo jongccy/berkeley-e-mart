@@ -17,7 +17,7 @@ export async function createWantedPost(formData: FormData) {
 
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
-  const category = String(formData.get("category") ?? "other").trim();
+  const category = String(formData.get("category") ?? "").trim();
   const maxPriceRaw = String(formData.get("max_price") ?? "").trim();
   const max_price_cents = maxPriceRaw
     ? Math.round(parseFloat(maxPriceRaw) * 100)
@@ -25,6 +25,10 @@ export async function createWantedPost(formData: FormData) {
 
   if (!title || !description) {
     redirect("/wanted/new?error=Title and description are required.");
+  }
+
+  if (!category) {
+    redirect("/wanted/new?error=Choose a category.");
   }
 
   const { data, error } = await supabase
