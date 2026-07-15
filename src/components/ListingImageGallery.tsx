@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { SafeListingImage } from "@/components/SafeListingImage";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export type ListingGalleryImage = {
@@ -48,7 +48,7 @@ export function ListingImageGallery({ images, alt }: Props) {
   return (
     <div className="space-y-3">
       <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
-        <Image
+        <SafeListingImage
           src={active.url}
           alt={alt}
           fill
@@ -115,7 +115,7 @@ export function ListingImageGallery({ images, alt }: Props) {
                 aria-label={`View photo ${index + 1}`}
                 aria-current={index === activeIndex}
               >
-                <Image
+                <SafeListingImage
                   src={img.url}
                   alt=""
                   fill
@@ -144,7 +144,7 @@ function ChevronIcon({ direction }: { direction: "left" | "right" }) {
       {direction === "left" ? (
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6" />
       ) : (
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6 6-6" />
       )}
     </svg>
   );

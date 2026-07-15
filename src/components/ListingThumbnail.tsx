@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { SafeListingImage } from "@/components/SafeListingImage";
 
 type Props = {
   imageUrl: string | null;
@@ -23,7 +23,7 @@ export function ListingThumbnail({
       className={`relative shrink-0 overflow-hidden bg-zinc-100 dark:bg-zinc-800 ${className}`}
     >
       {imageUrl ? (
-        <Image
+        <SafeListingImage
           src={imageUrl}
           alt={alt}
           fill

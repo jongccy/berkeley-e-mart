@@ -81,7 +81,7 @@ async function uploadListingImages(
 
   for (let i = 0; i < validImages.length; i++) {
     const file = validImages[i];
-    const ext = file.name.split(".").pop() ?? "jpg";
+    const ext = listingImageExtension(file);
     const path = `${userId}/${listingId}/${i}.${ext}`;
     const uploadError = await uploadListingImageFile(
       supabase,
@@ -105,6 +105,18 @@ async function uploadListingImages(
   return null;
 }
 
+function listingImageExtension(file: File): string {
+  const nameExt = (file.name.split(".").pop() ?? "").toLowerCase();
+  if (nameExt === "heic" || nameExt === "heif") return "jpg";
+  if (["jpg", "jpeg", "png", "webp", "gif"].includes(nameExt)) {
+    return nameExt === "jpeg" ? "jpg" : nameExt;
+  }
+  if (file.type === "image/png") return "png";
+  if (file.type === "image/webp") return "webp";
+  if (file.type === "image/gif") return "gif";
+  return "jpg";
+}
+
 async function uploadListingImageFile(
   supabase: Awaited<ReturnType<typeof createClient>>,
   listingId: string,
@@ -112,9 +124,20 @@ async function uploadListingImageFile(
   file: File,
   sortOrder: number
 ): Promise<string | null> {
+  const contentType =
+    file.type ||
+    (storagePath.toLowerCase().endsWith(".png")
+      ? "image/png"
+      : storagePath.toLowerCase().endsWith(".webp")
+        ? "image/webp"
+        : "image/jpeg");
+
   const { error: uploadError } = await supabase.storage
     .from(LISTING_IMAGE_BUCKET)
-    .upload(storagePath, file);
+    .upload(storagePath, file, {
+      contentType,
+      upsert: false,
+    });
 
   if (uploadError) {
     return `Photo upload failed: ${uploadError.message}`;
@@ -257,7 +280,7 @@ async function syncListingImagesOnUpdate(
     if (uploadedByIndex.has(index)) continue;
 
     const file = newFiles[index];
-    const ext = file.name.split(".").pop() ?? "jpg";
+    const ext = listingImageExtension(file);
     const storagePath = `${userId}/${listingId}/${crypto.randomUUID()}.${ext}`;
     const uploadError = await uploadListingImageFile(
       supabase,

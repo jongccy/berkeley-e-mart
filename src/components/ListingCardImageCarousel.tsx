@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useState } from "react";
+import { SafeListingImage } from "@/components/SafeListingImage";
 
 export type ListingCardImage = {
   id: string;
@@ -43,7 +43,7 @@ export function ListingCardImageCarousel({ images, alt, href }: Props) {
   return (
     <div className="relative aspect-[4/3] overflow-hidden bg-zinc-100 dark:bg-zinc-800">
       <Link href={href} className="relative block h-full w-full">
-        <Image
+        <SafeListingImage
           src={active.url}
           alt={alt}
           fill
@@ -111,7 +111,7 @@ function ChevronIcon({ direction }: { direction: "left" | "right" }) {
       {direction === "left" ? (
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6" />
       ) : (
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6 6-6" />
       )}
     </svg>
   );

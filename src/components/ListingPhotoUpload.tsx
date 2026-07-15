@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { prepareListingImageFile } from "@/lib/listing-image-files";
 
 export type ExistingListingPhoto = {
   id: string;
@@ -58,6 +59,8 @@ export function ListingPhotoUpload({
       storage_path: image.storage_path,
     }))
   );
+  const [processing, setProcessing] = useState(false);
+  const [processError, setProcessError] = useState("");
 
   useEffect(() => {
     const files = slots
@@ -78,25 +81,38 @@ export function ListingPhotoUpload({
     };
   }, []);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = Array.from(e.target.files ?? []);
+    e.target.value = "";
     if (selected.length === 0) return;
 
-    setSlots((current) => [
-      ...current,
-      ...selected.map((file) => {
-        const url = URL.createObjectURL(file);
-        previewUrlsRef.current.push(url);
-        return {
-          key: `new-${file.name}-${file.lastModified}-${file.size}-${Math.random()}`,
-          kind: "new" as const,
-          file,
-          url,
-        };
-      }),
-    ]);
+    setProcessing(true);
+    setProcessError("");
 
-    e.target.value = "";
+    try {
+      const prepared: PhotoSlot[] = [];
+      for (const file of selected) {
+        const nextFile = await prepareListingImageFile(file);
+        const url = URL.createObjectURL(nextFile);
+        previewUrlsRef.current.push(url);
+        prepared.push({
+          key: `new-${nextFile.name}-${nextFile.lastModified}-${nextFile.size}-${Math.random()}`,
+          kind: "new",
+          file: nextFile,
+          url,
+        });
+      }
+
+      setSlots((current) => [...current, ...prepared]);
+    } catch (error) {
+      setProcessError(
+        error instanceof Error
+          ? error.message
+          : "Could not process one of the photos. Try JPG or PNG."
+      );
+    } finally {
+      setProcessing(false);
+    }
   }
 
   function removePhoto(key: string) {
@@ -180,11 +196,14 @@ export function ListingPhotoUpload({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 text-zinc-500 transition hover:border-[#003262] hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-[#FDB515]"
+          disabled={processing}
+          className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 text-zinc-500 transition hover:border-[#003262] hover:bg-zinc-100 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-[#FDB515]"
           aria-label="Add photos"
         >
           <PhotoIcon />
-          <span className="text-xs">Add photos</span>
+          <span className="text-xs">
+            {processing ? "Processing…" : "Add photos"}
+          </span>
         </button>
       </div>
       <input
@@ -195,10 +214,15 @@ export function ListingPhotoUpload({
         className="hidden"
         onChange={handleChange}
       />
+      {processError && (
+        <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+          {processError}
+        </p>
+      )}
       <p className="mt-2 text-xs text-zinc-500">
         {slots.length > 0
           ? `${slots.length} photo${slots.length === 1 ? "" : "s"} — use arrows to reorder`
-          : "Tap the icon to upload photos"}
+          : "Tap the icon to upload photos (iPhone HEIC is converted automatically)"}
       </p>
     </div>
   );
