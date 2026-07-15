@@ -32,7 +32,7 @@ export function BrowseHero({ searchParams }: Props) {
         <CalketLogo href={false} height={240} rounded="rounded-3xl" />
 
         <p className="max-w-2xl text-center text-base text-white/90 sm:text-lg">
-          Calket is the marketplace built just for Cal. Buy and sell with the <span className="text-[#FDB515]">Bear community</span>{" "}.
+          Calket is the marketplace built just for Cal. Buy and sell within the <span className="text-[#FDB515]">Bear community</span>.
         </p>
 
         <form
