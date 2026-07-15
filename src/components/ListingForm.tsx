@@ -186,10 +186,12 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">Description</label>
+        <label className="mb-1 block text-sm font-medium">
+          Description{" "}
+          <span className="font-normal text-zinc-500">(optional)</span>
+        </label>
         <textarea
           name="description"
-          required
           rows={5}
           defaultValue={listing?.description ?? ""}
           className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"

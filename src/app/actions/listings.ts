@@ -414,8 +414,8 @@ export async function createListing(formData: FormData) {
 function validateListingData(
   data: ReturnType<typeof parseListingForm>
 ): string | null {
-  if (!data.title || !data.description) {
-    return "Title and description are required.";
+  if (!data.title) {
+    return "Title is required.";
   }
   if (!data.category) {
     return "Choose a category.";
