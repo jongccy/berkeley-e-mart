@@ -111,7 +111,7 @@ function ChevronIcon({ direction }: { direction: "left" | "right" }) {
       {direction === "left" ? (
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6" />
       ) : (
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6 6-6" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
       )}
     </svg>
   );
