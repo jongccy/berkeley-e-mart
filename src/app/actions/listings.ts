@@ -388,7 +388,19 @@ export async function createListingFromForm(
   _prevState: ListingFormState,
   formData: FormData
 ): Promise<ListingFormState> {
-  return createListingInternal(formData);
+  try {
+    return await createListingInternal(formData);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Could not create listing.";
+    if (/body exceeded|too large|413/i.test(message)) {
+      return {
+        error:
+          "Photos are too large to upload. Try fewer photos or smaller files.",
+      };
+    }
+    return { error: message };
+  }
 }
 
 export async function createListing(formData: FormData) {

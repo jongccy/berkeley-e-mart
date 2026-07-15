@@ -7,9 +7,11 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
-      // Phone photos easily exceed 10MB when several are attached.
+      // Phone photos easily exceed the default 1MB Server Action limit.
       bodySizeLimit: "50mb",
     },
+    // Proxy clones request bodies (default 10MB). Keep in sync with uploads.
+    proxyClientMaxBodySize: "50mb",
   },
   images: {
     remotePatterns: [

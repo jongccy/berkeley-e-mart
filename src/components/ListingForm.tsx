@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  startTransition,
-  useActionState,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import {
   CATEGORIES,
   FREE_CATEGORY,
@@ -144,30 +138,31 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    if (!validateBeforeSubmit(form)) return;
+    // Only block invalid submits; let the form `action` invoke the Server Action.
+    if (!validateBeforeSubmit(event.currentTarget)) {
+      event.preventDefault();
+    }
+  }
 
-    // File inputs cleared after pick can be empty in FormData; inject from state.
-    const formData = new FormData(form);
+  function submitAction(formData: FormData) {
+    // File inputs can be empty after pick; inject prepared files from state.
     formData.delete("images");
     for (const file of photoFilesRef.current) {
       formData.append("images", file);
     }
 
-    startTransition(() => {
-      if (isEdit) {
-        editAction(formData);
-      } else {
-        createAction(formData);
-      }
-    });
+    if (isEdit) {
+      editAction(formData);
+    } else {
+      createAction(formData);
+    }
   }
 
   const formError = formState.error;
 
   return (
     <form
+      action={submitAction}
       className="mx-auto max-w-xl space-y-4"
       onSubmit={handleSubmit}
       onChange={() => setIsDirty(true)}
