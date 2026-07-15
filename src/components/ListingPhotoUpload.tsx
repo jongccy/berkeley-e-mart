@@ -59,10 +59,6 @@ export function ListingPhotoUpload({
     }))
   );
 
-  const newFiles = slots
-    .filter((slot): slot is Extract<PhotoSlot, { kind: "new" }> => slot.kind === "new")
-    .map((slot) => slot.file);
-
   useEffect(() => {
     const files = slots
       .filter(
@@ -72,17 +68,6 @@ export function ListingPhotoUpload({
     onFilesChange?.(files);
     onPhotoCountChange?.(slots.length);
   }, [slots, onFilesChange, onPhotoCountChange]);
-
-  useEffect(() => {
-    const input = inputRef.current;
-    if (!input) return;
-
-    const dataTransfer = new DataTransfer();
-    for (const file of newFiles) {
-      dataTransfer.items.add(file);
-    }
-    input.files = dataTransfer.files;
-  }, [newFiles]);
 
   useEffect(() => {
     return () => {
@@ -204,9 +189,8 @@ export function ListingPhotoUpload({
       </div>
       <input
         ref={inputRef}
-        name="images"
         type="file"
-        accept="image/*"
+        accept="image/*,.heic,.heif"
         multiple
         className="hidden"
         onChange={handleChange}

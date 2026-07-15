@@ -7,7 +7,8 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
-      bodySizeLimit: "10mb",
+      // Phone photos easily exceed 10MB when several are attached.
+      bodySizeLimit: "50mb",
     },
   },
   images: {

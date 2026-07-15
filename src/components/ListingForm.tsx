@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useState } from "react";
+import {
+  startTransition,
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   CATEGORIES,
   FREE_CATEGORY,
@@ -60,7 +66,7 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
   const [price, setPrice] = useState(
     listing?.price_cents != null ? (listing.price_cents / 100).toString() : ""
   );
-  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const photoFilesRef = useRef<File[]>([]);
   const [photoCount, setPhotoCount] = useState(
     listing ? existingPhotos.length : 0
   );
@@ -70,6 +76,10 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
   const isHousing = category === HOUSING_CATEGORY;
   const isFreeListing = category === FREE_CATEGORY;
   const isNewListing = !listing;
+
+  function handlePhotosChange(files: File[]) {
+    photoFilesRef.current = files;
+  }
 
   function handlePriceChange(value: string) {
     const sanitized = value.replace(/[^0-9.]/g, "");
@@ -90,49 +100,76 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
     setIsDirty(true);
   }
 
-  function validateBeforeSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function validateBeforeSubmit(form: HTMLFormElement): boolean {
     setQualityError("");
     setPhotoError("");
     setHousingLocationError("");
 
     if (isHousing) {
-      const form = event.currentTarget;
       const location = String(
         new FormData(form).get("address_area") ?? ""
       ).trim();
       const locationError = validateExactHousingLocation(location);
       if (locationError) {
-        event.preventDefault();
         setHousingLocationError(locationError);
-        return;
+        return false;
       }
     }
 
     if (qualityRating < 1 || qualityRating > 5) {
-      event.preventDefault();
       setQualityError("Select a condition rating from 1 to 5 stars.");
-      return;
+      return false;
     }
 
-    if (isNewListing && photoFiles.length === 0) {
-      event.preventDefault();
+    const files = photoFilesRef.current;
+    if (isNewListing && files.length === 0) {
       setPhotoError("Add at least one photo.");
-      return;
+      return false;
     }
 
     if (isEdit && photoCount === 0) {
-      event.preventDefault();
       setPhotoError("Keep at least one photo.");
+      return false;
     }
+
+    const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
+    if (totalBytes > 45 * 1024 * 1024) {
+      setPhotoError(
+        "Photos are too large combined (max ~45MB). Try fewer or smaller photos."
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    if (!validateBeforeSubmit(form)) return;
+
+    // File inputs cleared after pick can be empty in FormData; inject from state.
+    const formData = new FormData(form);
+    formData.delete("images");
+    for (const file of photoFilesRef.current) {
+      formData.append("images", file);
+    }
+
+    startTransition(() => {
+      if (isEdit) {
+        editAction(formData);
+      } else {
+        createAction(formData);
+      }
+    });
   }
 
   const formError = formState.error;
 
   return (
     <form
-      action={isEdit ? editAction : createAction}
       className="mx-auto max-w-xl space-y-4"
-      onSubmit={validateBeforeSubmit}
+      onSubmit={handleSubmit}
       onChange={() => setIsDirty(true)}
     >
       {isEdit && <input type="hidden" name="listing_id" value={listing.id} />}
@@ -373,7 +410,7 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
       <div>
         <ListingPhotoUpload
           existingImages={isEdit ? existingPhotos : undefined}
-          onFilesChange={setPhotoFiles}
+          onFilesChange={handlePhotosChange}
           onPhotoCountChange={setPhotoCount}
         />
         {photoError && (

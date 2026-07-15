@@ -117,7 +117,7 @@ async function uploadListingImageFile(
     .upload(storagePath, file);
 
   if (uploadError) {
-    return uploadError.message;
+    return `Photo upload failed: ${uploadError.message}`;
   }
 
   const { error: imageRowError } = await supabase.from("listing_images").insert({
@@ -127,7 +127,7 @@ async function uploadListingImageFile(
   });
 
   if (imageRowError) {
-    return imageRowError.message;
+    return `Could not save photo: ${imageRowError.message}`;
   }
 
   return null;
