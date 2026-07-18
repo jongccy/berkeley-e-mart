@@ -33,10 +33,6 @@ export function TermsOfServiceContent() {
           <li>You are responsible for all activity under your account.</li>
           <li>Do not share your login credentials with others.</li>
           <li>
-            You must verify your phone number before posting listings or
-            messaging other users.
-          </li>
-          <li>
             Creating multiple accounts or impersonating another person is not
             allowed.
           </li>
