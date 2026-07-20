@@ -1,9 +1,13 @@
 import { PrivacyPolicyContent } from "@/components/PrivacyPolicyContent";
 import { LegalBackLink } from "@/components/LegalBackLink";
-import { SITE_NAME } from "@/lib/constants";
+import type { Metadata } from "next";
 
-export const metadata = {
-  title: `Privacy Policy | ${SITE_NAME}`,
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description: "Privacy Policy for Calket, the UC Berkeley student marketplace.",
+  alternates: {
+    canonical: "/privacy",
+  },
 };
 
 export default async function PrivacyPage({

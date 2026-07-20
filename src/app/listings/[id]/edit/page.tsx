@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { ListingForm } from "@/components/ListingForm";
 import type { ExistingListingPhoto } from "@/components/ListingPhotoUpload";
 import { createClient } from "@/lib/supabase/server";
@@ -8,6 +9,11 @@ import { getPublicImageUrl } from "@/lib/format";
 import type { Listing, ListingImage } from "@/types/database";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Edit listing",
+  robots: { index: false, follow: false },
+};
 
 export default async function EditListingPage({
   params,

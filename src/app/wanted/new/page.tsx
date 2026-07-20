@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { WantedForm } from "@/components/WantedForm";
 import { createWantedPost } from "@/app/actions/wanted";
@@ -6,6 +7,11 @@ import { createClient } from "@/lib/supabase/server";
 import { isVerifiedBerkeleyUser } from "@/lib/supabase/auth-helpers";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Post a request",
+  robots: { index: false, follow: false },
+};
 
 export default async function NewWantedPage() {
   const supabase = await createClient();

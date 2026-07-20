@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { ListingCard } from "@/components/ListingCard";
 import { BrowseHero } from "@/components/BrowseHero";
@@ -17,6 +18,23 @@ import { PROFILE_IDENTITY_SELECT } from "@/lib/profile-display";
 import type { ListingWithImages } from "@/types/database";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: {
+    absolute: "Calket | Berkeley Student Marketplace",
+  },
+  description:
+    "Buy and sell textbooks, furniture, electronics, and housing leases with verified UC Berkeley students on Calket.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Calket | Berkeley Student Marketplace",
+    description:
+      "Buy and sell with verified Berkeley affiliates. Browse campus listings on Calket.",
+    url: "/",
+  },
+};
 
 const BROWSE_PAGE_SIZE = 16;
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { ListingCard } from "@/components/ListingCard";
 import { isAuthenticatedBerkeleyUser } from "@/lib/supabase/auth-helpers";
@@ -19,6 +20,22 @@ import { SortMenu } from "@/components/SortMenu";
 import type { ListingWithImages } from "@/types/database";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Browse Listings",
+  description:
+    "Browse textbooks, furniture, electronics, free items, and housing leases from UC Berkeley students on Calket.",
+  alternates: {
+    // Ignore filter/sort query variants for SEO — one canonical browse URL.
+    canonical: "/browse",
+  },
+  openGraph: {
+    title: "Browse Listings",
+    description:
+      "Browse campus listings from verified Berkeley students on Calket.",
+    url: "/browse",
+  },
+};
 
 const PAGE_SIZE = 18;
 

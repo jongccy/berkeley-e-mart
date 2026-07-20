@@ -1,5 +1,7 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ListingImageGallery } from "@/components/ListingImageGallery";
+import { ListingStructuredData } from "@/components/ListingStructuredData";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { MessageSellerButton } from "@/components/MessageSellerButton";
@@ -10,7 +12,7 @@ import {
   formatPostedDate,
   getPublicImageUrl,
 } from "@/lib/format";
-import { HOUSING_CATEGORY, LISTING_IMAGE_BUCKET } from "@/lib/constants";
+import { HOUSING_CATEGORY, LISTING_IMAGE_BUCKET, SITE_NAME } from "@/lib/constants";
 import {
   PROFILE_IDENTITY_SELECT,
   resolveSellerDisplayName,
@@ -36,6 +38,72 @@ import { usersAreBlocked, viewerHasBlockedUser } from "@/lib/user-blocks";
 import type { ListingWithImages } from "@/types/database";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+
+  const { data: listing } = await supabase
+    .from("listings")
+    .select("title, description, category, price_cents, status, sold_at, listing_images(storage_path, sort_order)")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (
+    !listing ||
+    listing.status === "removed" ||
+    (listing.status === "sold" && !isSoldListingVisible(listing.sold_at))
+  ) {
+    return {
+      title: "Listing not found",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const priceLabel = formatListingPrice(listing.price_cents, listing.category);
+  const categoryLabel = formatCategory(listing.category);
+  const description =
+    listing.description?.trim() ||
+    `${listing.title} (${priceLabel}) — ${categoryLabel} on ${SITE_NAME}, the UC Berkeley student marketplace.`;
+
+  const images = [...(listing.listing_images ?? [])].sort(
+    (a, b) => a.sort_order - b.sort_order
+  );
+  const firstImage = images[0];
+  const imageUrl = firstImage
+    ? getPublicImageUrl(supabaseUrl, LISTING_IMAGE_BUCKET, firstImage.storage_path)
+    : undefined;
+
+  return {
+    title: listing.title,
+    description: description.slice(0, 160),
+    alternates: {
+      canonical: `/listings/${id}`,
+    },
+    openGraph: {
+      title: listing.title,
+      description: description.slice(0, 160),
+      url: `/listings/${id}`,
+      type: "website",
+      ...(imageUrl
+        ? {
+            images: [{ url: imageUrl, alt: listing.title }],
+          }
+        : {}),
+    },
+    twitter: {
+      card: imageUrl ? "summary_large_image" : "summary",
+      title: listing.title,
+      description: description.slice(0, 160),
+      ...(imageUrl ? { images: [imageUrl] } : {}),
+    },
+  };
+}
 
 export default async function ListingDetailPage({
   params,
@@ -133,6 +201,10 @@ export default async function ListingDetailPage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
+      <ListingStructuredData
+        listing={item}
+        imageUrl={galleryImages[0]?.url}
+      />
       <Link
         href="/"
         className="mb-6 inline-flex items-center gap-1 text-sm font-medium text-[#003262] hover:underline dark:text-[#FDB515]"

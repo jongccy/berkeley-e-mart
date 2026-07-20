@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { closeWantedPost } from "@/app/actions/wanted";
@@ -6,6 +7,7 @@ import { MessageRequesterButton } from "@/components/MessageRequesterButton";
 import { DisplayNameWithBadge } from "@/components/DisplayNameWithBadge";
 import { BlockUserButton } from "@/components/BlockUserButton";
 import { formatPrice, formatCategory } from "@/lib/format";
+import { SITE_NAME } from "@/lib/constants";
 import {
   PROFILE_IDENTITY_SELECT,
   resolvePublicName,
@@ -15,6 +17,51 @@ import {
 import { usersAreBlocked, viewerHasBlockedUser } from "@/lib/user-blocks";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+
+  const { data: post } = await supabase
+    .from("wanted_posts")
+    .select("title, description, category, max_price_cents, status")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!post) {
+    return {
+      title: "Request not found",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const budget = formatPrice(post.max_price_cents);
+  const categoryLabel = formatCategory(post.category);
+  const description =
+    post.description?.trim() ||
+    `${post.title} — looking for ${categoryLabel} (max ${budget}) on ${SITE_NAME}.`;
+
+  return {
+    title: post.title,
+    description: description.slice(0, 160),
+    alternates: {
+      canonical: `/wanted/${id}`,
+    },
+    openGraph: {
+      title: post.title,
+      description: description.slice(0, 160),
+      url: `/wanted/${id}`,
+    },
+    robots:
+      post.status === "open"
+        ? { index: true, follow: true }
+        : { index: false, follow: true },
+  };
+}
 
 export default async function WantedDetailPage({
   params,

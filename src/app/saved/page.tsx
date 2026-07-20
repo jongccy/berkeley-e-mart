@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isAuthenticatedBerkeleyUser } from "@/lib/supabase/auth-helpers";
@@ -7,6 +8,11 @@ import { expireSoldListings } from "@/lib/expire-sold-listings";
 import type { ListingWithImages } from "@/types/database";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Saved",
+  robots: { index: false, follow: false },
+};
 
 export default async function SavedListingsPage() {
   const supabase = await createClient();

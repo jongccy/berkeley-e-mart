@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { uploadAvatar } from "@/app/actions/profile";
@@ -24,6 +25,11 @@ import { PROFILE_IDENTITY_SELECT } from "@/lib/profile-display";
 import type { ListingWithImages, Profile } from "@/types/database";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "My profile",
+  robots: { index: false, follow: false },
+};
 
 export default async function MyProfilePage({
   searchParams,

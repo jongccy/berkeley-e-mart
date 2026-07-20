@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ChatThread } from "@/components/ChatThread";
@@ -27,6 +28,11 @@ import {
 } from "@/lib/user-blocks";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Conversation",
+  robots: { index: false, follow: false },
+};
 
 export default async function ConversationPage({
   params,

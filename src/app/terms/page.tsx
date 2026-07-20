@@ -1,9 +1,13 @@
 import { TermsOfServiceContent } from "@/components/TermsOfServiceContent";
 import { LegalBackLink } from "@/components/LegalBackLink";
-import { SITE_NAME } from "@/lib/constants";
+import type { Metadata } from "next";
 
-export const metadata = {
-  title: `Terms of Service | ${SITE_NAME}`,
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description: "Terms of Service for using Calket, the UC Berkeley student marketplace.",
+  alternates: {
+    canonical: "/terms",
+  },
 };
 
 export default async function TermsPage({

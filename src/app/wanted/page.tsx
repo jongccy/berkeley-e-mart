@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice, formatCategory } from "@/lib/format";
 import { DisplayNameWithBadge } from "@/components/DisplayNameWithBadge";
@@ -11,6 +12,21 @@ import { getBlockRelatedUserIds } from "@/lib/user-blocks";
 import type { WantedPost } from "@/types/database";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Requests",
+  description:
+    "See what UC Berkeley students are looking for and respond to open requests on Calket.",
+  alternates: {
+    canonical: "/wanted",
+  },
+  openGraph: {
+    title: "Requests",
+    description:
+      "Browse open requests from Berkeley students looking to buy items on campus.",
+    url: "/wanted",
+  },
+};
 
 type WantedPostWithProfile = WantedPost & {
   profiles: {
