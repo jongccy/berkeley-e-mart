@@ -68,7 +68,7 @@ export function HomeConveyorBanner() {
     <div
       className="home-promo-enter flex h-full w-full overflow-hidden rounded-3xl bg-[#289958]"
       style={{ animationDelay: "0.06s" }}
-      aria-label="Safer Buying and Selling with Berkeley Affiliates"
+      aria-label="Safer Buying and Selling with UC Berkeley Affiliates"
     >
       <div className="flex h-full w-[52%] gap-3 p-2 sm:p-2.5" aria-hidden>
         <ConveyorBelt items={BELT_A} />
@@ -81,9 +81,9 @@ export function HomeConveyorBanner() {
           <br />
           and Selling
           <br />
-          with Berkeley
+          with
           <br />
-          Affiliates
+          UC&nbsp;Berkeley Affiliates
         </p>
       </div>
     </div>
