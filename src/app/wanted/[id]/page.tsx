@@ -103,7 +103,7 @@ export default async function WantedDetailPage({
   const showRequesterProfile = sellerProfileIsPublic(profile) && !isOwner;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-8 sm:py-10">
       <Link href="/wanted" className="text-sm text-[#003262] underline">
         ← All requests
       </Link>
@@ -135,7 +135,7 @@ export default async function WantedDetailPage({
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
+          <div className="rounded-2xl border border-zinc-200/80 p-5 dark:border-zinc-800">
             <p className="text-sm text-zinc-500">Requester</p>
             {showRequesterProfile ? (
               <Link

@@ -25,7 +25,7 @@ export function ProfileIdentityPicker({
   onMarketplaceAliasChange,
 }: Props) {
   return (
-    <section className="rounded-xl bg-zinc-100 p-5 dark:bg-zinc-900">
+    <section className="rounded-2xl border border-zinc-200/80 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
       <h2 className="text-sm font-semibold">ID</h2>
 
       <div className="mt-4 space-y-4">

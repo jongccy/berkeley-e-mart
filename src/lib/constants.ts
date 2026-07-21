@@ -15,7 +15,7 @@ export const CATEGORIES = [
   { value: "electronics", label: "Electronics" },
   { value: "furniture", label: "Furniture" },
   { value: "textbooks", label: "Textbooks" },
-  { value: "housing", label: "Housing / Leasing" },
+  { value: "housing", label: "Housing" },
   { value: "transportation", label: "Transportation" },
   { value: "appliances", label: "Home Appliances" },
   { value: "clothing", label: "Clothing" },

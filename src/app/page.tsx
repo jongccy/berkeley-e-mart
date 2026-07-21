@@ -1,19 +1,17 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { ListingCard } from "@/components/ListingCard";
-import { BrowseHero } from "@/components/BrowseHero";
+import { HomeListingCard } from "@/components/HomeListingCard";
+import { HomePromoBanners } from "@/components/HomePromoBanners";
+import { HomeCategoryRow } from "@/components/HomeCategoryRow";
 import { RecommendationsSection } from "@/components/RecommendationsSection";
-import { isAuthenticatedBerkeleyUser, isVerifiedBerkeleyUser } from "@/lib/supabase/auth-helpers";
+import {
+  isAuthenticatedBerkeleyUser,
+  isVerifiedBerkeleyUser,
+} from "@/lib/supabase/auth-helpers";
 import { getLikedListingIds } from "@/lib/listing-likes";
 import { expireSoldListings } from "@/lib/expire-sold-listings";
 import { getSoldListingCutoffIso } from "@/lib/sold-listings";
-import { applyListingCategoryFilter } from "@/lib/listing-filters";
-import {
-  appendHousingFilterParams,
-  applyHousingListingFilters,
-  type HousingFilterParams,
-} from "@/lib/housing-browse-filters";
 import { PROFILE_IDENTITY_SELECT } from "@/lib/profile-display";
 import type { ListingWithImages } from "@/types/database";
 
@@ -36,37 +34,9 @@ export const metadata: Metadata = {
   },
 };
 
-const BROWSE_PAGE_SIZE = 16;
+const RECENT_LIMIT = 10;
 
-type SearchParams = HousingFilterParams & {
-  q?: string;
-  category?: string;
-  min_price?: string;
-  max_price?: string;
-  limit?: string;
-};
-
-function buildBrowseHref(
-  params: SearchParams,
-  limit: number
-): string {
-  const search = new URLSearchParams();
-  if (params.q) search.set("q", params.q);
-  if (params.category) search.set("category", params.category);
-  if (params.min_price) search.set("min_price", params.min_price);
-  if (params.max_price) search.set("max_price", params.max_price);
-  appendHousingFilterParams(search, params);
-  if (limit > BROWSE_PAGE_SIZE) search.set("limit", String(limit));
-  const query = search.toString();
-  return query ? `/?${query}` : "/";
-}
-
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams: Promise<SearchParams>;
-}) {
-  const params = await searchParams;
+export default async function HomePage() {
   const supabase = await createClient();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 
@@ -78,69 +48,54 @@ export default async function HomePage({
 
   const soldCutoff = getSoldListingCutoffIso();
 
-  const parsedLimit = parseInt(params.limit ?? "", 10);
-  const displayLimit =
-    Number.isFinite(parsedLimit) && parsedLimit >= BROWSE_PAGE_SIZE
-      ? parsedLimit
-      : BROWSE_PAGE_SIZE;
-
-  let query = supabase
+  const { data: listings } = await supabase
     .from("listings")
-    .select(`*, listing_images(*), profiles:seller_id(${PROFILE_IDENTITY_SELECT})`)
+    .select(
+      `*, listing_images(*), profiles:seller_id(${PROFILE_IDENTITY_SELECT})`
+    )
     .or(`status.eq.active,and(status.eq.sold,sold_at.gte.${soldCutoff})`)
     .order("created_at", { ascending: false })
-    .limit(displayLimit + 1);
+    .limit(RECENT_LIMIT);
 
-  if (params.category) {
-    query = applyListingCategoryFilter(query, [params.category]);
-  }
-  query = applyHousingListingFilters(
-    query,
-    params,
-    params.category ? [params.category] : []
-  );
-  if (params.q) {
-    query = query.or(
-      `title.ilike.%${params.q}%,description.ilike.%${params.q}%`
-    );
-  }
-  if (params.min_price) {
-    query = query.gte("price_cents", parseInt(params.min_price, 10) * 100);
-  }
-  if (params.max_price) {
-    query = query.lte("price_cents", parseInt(params.max_price, 10) * 100);
-  }
-
-  const { data: listings } = await query;
-  const fetched = (listings ?? []) as ListingWithImages[];
-  const hasMore = fetched.length > displayLimit;
-  const items = hasMore ? fetched.slice(0, displayLimit) : fetched;
+  const items = (listings ?? []) as ListingWithImages[];
   const likedIds = await getLikedListingIds(supabase, user?.id);
   const showLike = Boolean(user && isAuthenticatedBerkeleyUser(user));
   const loggedIn = showLike;
 
   return (
-    <>
-      <BrowseHero searchParams={params} />
+    <div className="bg-white dark:bg-zinc-950">
+      <div className="mx-auto max-w-7xl space-y-12 px-4 py-8 sm:space-y-14 sm:px-8 sm:py-10">
+        <h1 className="sr-only">Calket — Berkeley student marketplace</h1>
 
-      <div className="mx-auto max-w-7xl space-y-6 px-4 py-8">
-        <h1 className="font-pixel text-2xl font-bold text-[#003262] dark:text-[#FDB515]">
-          Browse
-        </h1>
+        <HomePromoBanners />
 
-        {user && isVerifiedBerkeleyUser(user) && (
-          <RecommendationsSection userId={user.id} />
-        )}
+        <HomeCategoryRow />
 
-        {items.length === 0 ? (
-          <p className="py-8 text-center text-zinc-500">
-            No listings match your search or filters.
-          </p>
-        ) : (
-          <div className="space-y-8">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="space-y-5">
+          <div className="flex items-end justify-between gap-4">
+            <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50 sm:text-2xl">
+              Most recent listings
+            </h2>
+            <Link
+              href="/browse"
+              className="shrink-0 text-sm font-semibold text-[#003262] transition hover:opacity-70 dark:text-[#FDB515]"
+            >
+              View all →
+            </Link>
+          </div>
+
+          {items.length === 0 ? (
+            <p className="py-10 text-center text-zinc-500">
+              No listings yet. Be the first to{" "}
+              <Link href="/listings/new" className="underline">
+                sell something
+              </Link>
+              .
+            </p>
+          ) : (
+            <div className="grid gap-x-5 gap-y-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
               {items.map((listing) => (
-                <ListingCard
+                <HomeListingCard
                   key={listing.id}
                   listing={listing}
                   supabaseUrl={supabaseUrl}
@@ -150,19 +105,13 @@ export default async function HomePage({
                 />
               ))}
             </div>
-            {hasMore && (
-              <div className="flex justify-center">
-                <Link
-                  href={buildBrowseHref(params, displayLimit + BROWSE_PAGE_SIZE)}
-                  className="rounded-lg bg-[#003262] px-6 py-2.5 text-sm font-medium text-white transition hover:bg-[#002244]"
-                >
-                  See more
-                </Link>
-              </div>
-            )}
-          </div>
+          )}
+        </section>
+
+        {user && isVerifiedBerkeleyUser(user) && (
+          <RecommendationsSection userId={user.id} />
         )}
       </div>
-    </>
+    </div>
   );
 }

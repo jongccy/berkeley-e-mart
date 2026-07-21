@@ -200,7 +200,7 @@ export default async function ListingDetailPage({
       : false;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-8 sm:py-10">
       <ListingStructuredData
         listing={item}
         imageUrl={galleryImages[0]?.url}
@@ -236,7 +236,7 @@ export default async function ListingDetailPage({
         </div>
 
         <div className="space-y-4">
-          <span className="rounded bg-[#003262] px-2 py-0.5 text-xs text-white">
+          <span className="inline-flex rounded-full bg-[#003262]/8 px-2.5 py-0.5 text-xs font-medium text-[#003262] dark:bg-[#FDB515]/15 dark:text-[#FDB515]">
             {formatCategory(item.category)}
           </span>
           <div className="flex items-start justify-between gap-3">
@@ -315,7 +315,7 @@ export default async function ListingDetailPage({
             )}
           </div>
 
-          <div className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
+          <div className="rounded-2xl border border-zinc-200/80 p-5 dark:border-zinc-800">
             <h2 className="text-sm font-bold tracking-wide text-zinc-900 dark:text-zinc-100">
               DESCRIPTION
             </h2>
@@ -327,7 +327,7 @@ export default async function ListingDetailPage({
           <ListingTags tags={item.tags ?? []} />
 
           {item.category === HOUSING_CATEGORY && (
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-xl border border-zinc-200 p-4 text-sm dark:border-zinc-800">
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-2xl border border-zinc-200/80 p-5 text-sm dark:border-zinc-800">
               {item.address_area && (
                 <>
                   <dt className="text-zinc-500">Location</dt>

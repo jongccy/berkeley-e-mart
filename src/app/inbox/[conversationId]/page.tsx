@@ -138,7 +138,7 @@ export default async function ConversationPage({
   );
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4 px-4 py-8">
+    <div className="mx-auto max-w-3xl space-y-4 px-4 py-8 sm:px-8 sm:py-10">
       <MarkConversationRead conversationId={conversationId} />
       <div className="flex items-center justify-between gap-3">
         <Link href="/inbox" className="text-sm text-[#003262] underline">

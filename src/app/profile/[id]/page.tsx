@@ -91,11 +91,11 @@ export default async function ProfilePage({
   });
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
+    <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-8 sm:py-10">
       {/* Header */}
       <div className="flex flex-col items-center gap-2 text-center">
         <ProfileAvatar avatarUrl={profile.avatar_url} alt={publicName} />
-        <h1 className="mt-2 text-2xl font-bold">
+        <h1 className="mt-2 text-3xl font-bold text-zinc-900 dark:text-zinc-50">
           <DisplayNameWithBadge name={publicName} verified={verified} />
         </h1>
         {verified && (
@@ -122,7 +122,7 @@ export default async function ProfilePage({
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 rounded-2xl border border-zinc-200 py-5 dark:border-zinc-800 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 rounded-2xl border border-zinc-200/80 py-5 dark:border-zinc-800 sm:grid-cols-4">
         <ProfileStat value="—" label="Avg Rating" />
         <ProfileStat value={0} label="Reviews" />
         <ProfileStat value={transactions} label="Transactions" />
@@ -131,7 +131,7 @@ export default async function ProfilePage({
 
       {/* Bio */}
       {profile.bio?.trim() && (
-        <section className="rounded-xl bg-zinc-100 p-5 dark:bg-zinc-900">
+        <section className="rounded-2xl border border-zinc-200/80 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
           <h2 className="text-sm font-semibold">Bio</h2>
           <p className="mt-1 whitespace-pre-wrap text-sm text-zinc-600 dark:text-zinc-300">
             {profile.bio}
@@ -174,7 +174,7 @@ export default async function ProfilePage({
               No active listings.
             </p>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {activeItems.map((listing) => (
                 <ListingCard
                   key={listing.id}
@@ -191,7 +191,7 @@ export default async function ProfilePage({
                 Recently sold
               </h2>
               {recentSoldItems.length > 0 && (
-                <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                <div className="mt-3 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {recentSoldItems.map((listing) => (
                     <ListingCard
                       key={listing.id}

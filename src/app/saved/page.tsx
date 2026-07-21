@@ -44,16 +44,18 @@ export default async function SavedListingsPage() {
     });
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
+    <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-8 sm:py-10">
       <div>
-        <h1 className="text-2xl font-bold">Saved</h1>
-        <p className="mt-1 text-sm text-zinc-500">
+        <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
+          Saved
+        </h1>
+        <p className="mt-2 text-sm text-zinc-500">
           Listings you&apos;ve saved. Only visible to you.
         </p>
       </div>
 
       {savedListings.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-zinc-300 py-16 text-center dark:border-zinc-700">
+        <div className="rounded-2xl border border-dashed border-zinc-200 py-16 text-center dark:border-zinc-700">
           <p className="text-sm text-zinc-500">
             You haven&apos;t saved any listings yet.
           </p>
@@ -65,7 +67,7 @@ export default async function SavedListingsPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {savedListings.map((listing) => (
             <ListingCard
               key={listing.id}

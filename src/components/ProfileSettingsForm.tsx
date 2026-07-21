@@ -47,7 +47,7 @@ export function ProfileSettingsForm({ profile, userEmail }: Props) {
         onMarketplaceAliasChange={setMarketplaceAlias}
       />
 
-      <section className="rounded-xl bg-zinc-100 p-5 dark:bg-zinc-900">
+      <section className="rounded-2xl border border-zinc-200/80 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
         <h2 className="text-sm font-semibold">Linked Berkeley Email</h2>
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
           {userEmail}
@@ -57,7 +57,7 @@ export function ProfileSettingsForm({ profile, userEmail }: Props) {
         </p>
       </section>
 
-      <section className="rounded-xl bg-zinc-100 p-5 dark:bg-zinc-900">
+      <section className="rounded-2xl border border-zinc-200/80 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
         <h2 className="text-sm font-semibold">Bio</h2>
         <textarea
           name="bio"
@@ -65,14 +65,14 @@ export function ProfileSettingsForm({ profile, userEmail }: Props) {
           value={bio}
           onChange={(e) => setBio(e.target.value)}
           placeholder={BIO_HELPER}
-          className="mt-2 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+          className="mt-2 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm outline-none transition focus:border-[#003262] focus:ring-2 focus:ring-[#003262]/15 dark:border-zinc-700 dark:bg-zinc-950"
         />
       </section>
 
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-lg bg-[#003262] py-2.5 font-medium text-white hover:bg-[#002244] disabled:opacity-60"
+        className="w-full rounded-full bg-[#003262] py-2.5 font-semibold text-white transition hover:bg-[#002244] disabled:opacity-60"
       >
         {pending ? "Saving..." : "Save profile"}
       </button>

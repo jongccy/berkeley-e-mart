@@ -57,12 +57,16 @@ export async function RecommendationsSection({ userId }: { userId: string }) {
   const likedIds = await getLikedListingIds(supabase, userId);
 
   return (
-    <section className="space-y-4">
-      <h2 className="text-xl font-semibold">Recommended for you</h2>
-      <p className="text-sm text-zinc-500">
-        Based on listings you&apos;ve recently viewed
-      </p>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <section className="space-y-5">
+      <div>
+        <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50 sm:text-2xl">
+          Recommended for you
+        </h2>
+        <p className="mt-1 text-sm text-zinc-500">
+          Based on listings you&apos;ve recently viewed
+        </p>
+      </div>
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {listings.map((listing) => (
           <ListingCard
             key={listing.id}

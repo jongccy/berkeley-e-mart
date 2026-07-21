@@ -60,14 +60,16 @@ function WantedPostList({
           <li key={post.id}>
             <Link
               href={`/wanted/${post.id}`}
-              className="block rounded-xl border border-zinc-200 bg-white p-4 hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
+              className="block rounded-2xl border border-zinc-200/80 bg-white p-5 transition hover:border-[#003262]/25 dark:border-zinc-800 dark:bg-zinc-950"
             >
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded bg-zinc-200 px-2 py-0.5 text-xs dark:bg-zinc-800">
+                <span className="rounded-full bg-[#003262]/8 px-2.5 py-0.5 text-xs font-medium text-[#003262] dark:bg-[#FDB515]/15 dark:text-[#FDB515]">
                   {formatCategory(post.category)}
                 </span>
               </div>
-              <h2 className="mt-1 font-medium">{post.title}</h2>
+              <h2 className="mt-2 font-semibold text-zinc-900 dark:text-zinc-50">
+                {post.title}
+              </h2>
               {showRequester && (
                 <p className="mt-1 text-sm text-zinc-500">
                   Posted by{" "}
@@ -77,10 +79,10 @@ function WantedPostList({
                   />
                 </p>
               )}
-              <p className="line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="mt-1 line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">
                 {post.description}
               </p>
-              <p className="mt-2 text-sm font-medium">
+              <p className="mt-3 text-sm font-bold text-[#003262] dark:text-[#FDB515]">
                 Max: {formatPrice(post.max_price_cents)}
               </p>
             </Link>
@@ -119,18 +121,20 @@ export default async function WantedPage() {
     : visibleItems;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">
+    <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-8 sm:py-10">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Looking for</h1>
-          <p className="text-sm text-zinc-500">
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
+            Looking for
+          </h1>
+          <p className="mt-2 text-sm text-zinc-500">
             Requests from students seeking items across campus.
           </p>
         </div>
         {user && (
           <Link
             href="/wanted/new"
-            className="rounded-lg bg-[#003262] px-4 py-2 text-sm text-white hover:bg-[#002244]"
+            className="rounded-full bg-[#003262] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#002244]"
           >
             Post a request
           </Link>

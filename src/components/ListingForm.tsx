@@ -420,7 +420,7 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
         <button
           type="submit"
           disabled={isPending}
-          className="w-full rounded-lg bg-[#003262] py-2.5 font-medium text-white hover:bg-[#002244] disabled:opacity-60"
+          className="w-full rounded-full bg-[#003262] py-2.5 font-semibold text-white transition hover:bg-[#002244] disabled:opacity-60"
         >
           {isPending
             ? isEdit

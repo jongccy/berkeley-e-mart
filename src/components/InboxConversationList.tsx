@@ -119,7 +119,7 @@ export function InboxConversationList({
   }
 
   return (
-    <ul className="divide-y divide-zinc-200 rounded-xl border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
+    <ul className="divide-y divide-zinc-100 overflow-hidden rounded-2xl border border-zinc-200/80 dark:divide-zinc-800 dark:border-zinc-800">
       {rows.map((c) => {
         const isBuyer = c.buyer.id === userId;
         const otherName = isBuyer
@@ -141,7 +141,7 @@ export function InboxConversationList({
             key={c.id}
             className={`flex items-start gap-3 px-4 py-4 hover:bg-zinc-50 dark:hover:bg-zinc-900 ${
               unread
-                ? "border-l-4 border-l-[#003262] bg-[#003262]/[0.07] dark:border-l-[#FDB515] dark:bg-[#FDB515]/10"
+                ? "border-l-4 border-l-[#003262] bg-[#003262]/[0.04] dark:border-l-[#FDB515] dark:bg-[#FDB515]/10"
                 : "border-l-4 border-l-transparent"
             }${isSoldThread ? " relative" : ""}`}
           >

@@ -36,7 +36,7 @@ export default async function NewWantedPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-8 sm:py-10">
       <h1 className="mb-6 text-2xl font-bold">Post a request</h1>
       <WantedForm action={createWantedPost} />
     </div>

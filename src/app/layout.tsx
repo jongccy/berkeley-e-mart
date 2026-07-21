@@ -73,23 +73,23 @@ export default async function RootLayout({
       <Nav />
       <VerifyBanner user={user} />
       <main className="flex-1">{children}</main>
-      <footer className="space-y-2 bg-[#003262] py-6 text-center text-xs text-white/90">
+      <footer className="space-y-2 border-t border-zinc-200 bg-white py-6 text-center text-xs text-zinc-600">
         <p>
           {SITE_NAME} — Buy and Sell with verified Berkeley affiliates.
         </p>
         <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
           <Link
             href="/terms"
-            className="text-[#FDB515] underline hover:text-[#ffe08a]"
+            className="font-medium text-[#003262] underline hover:text-[#002244]"
           >
             Terms of Service
           </Link>
-          <span className="text-white/50" aria-hidden>
+          <span className="text-zinc-300" aria-hidden>
             ·
           </span>
           <Link
             href="/privacy"
-            className="text-[#FDB515] underline hover:text-[#ffe08a]"
+            className="font-medium text-[#003262] underline hover:text-[#002244]"
           >
             Privacy Policy
           </Link>
@@ -106,7 +106,7 @@ export default async function RootLayout({
     >
       <body
         suppressHydrationWarning
-        className={`${nunito.className} flex min-h-full flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100`}
+        className={`${nunito.className} flex min-h-full flex-col bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100`}
       >
         <SiteStructuredData />
         {user ? (

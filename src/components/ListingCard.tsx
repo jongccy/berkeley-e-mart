@@ -19,6 +19,7 @@ type Props = {
   loggedIn?: boolean;
 };
 
+/** Airy marketplace card: rounded image, overlay heart, Calket fields retained. */
 export function ListingCard({
   listing,
   supabaseUrl,
@@ -41,58 +42,63 @@ export function ListingCard({
   const isSold = listing.status === "sold";
 
   return (
-    <div
-      className={`group flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900${isSold ? " relative" : ""}`}
-    >
+    <div className={`group flex flex-col${isSold ? " relative" : ""}`}>
       {isSold && <SoldListingOverlay />}
-      <ListingCardImageCarousel
-        images={cardImages}
-        alt={listing.title}
+      <div className="relative overflow-hidden rounded-2xl bg-zinc-100 dark:bg-zinc-800">
+        <ListingCardImageCarousel
+          images={cardImages}
+          alt={listing.title}
+          href={listingHref}
+        />
+        {showLike && (
+          <div className="absolute right-3 top-3 z-[2]">
+            <ListingLikeButton
+              listingId={listing.id}
+              initialLiked={liked}
+              loggedIn={loggedIn}
+              loginRedirect="/"
+              size="sm"
+              variant="overlay"
+            />
+          </div>
+        )}
+      </div>
+
+      <Link
         href={listingHref}
-      />
-      <Link href={listingHref} className="flex flex-1 flex-col">
-        <div className="flex flex-1 flex-col gap-1 p-3">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="line-clamp-2 min-w-0 flex-1 font-medium group-hover:underline">
-              {listing.title}
-            </h3>
-            {isSold && (
-              <span className="relative z-[2] shrink-0">
-                <ListingStatusBadge status="sold" />
-              </span>
-            )}
-          </div>
-          <div className="flex items-center justify-between gap-2">
-            <div className="min-w-0">
-              <p className="text-lg font-semibold text-[#003262] dark:text-[#FDB515]">
-                {formatListingPrice(listing.price_cents, listing.category)}
-              </p>
-              <p className="text-xs text-zinc-500">
-                <DisplayNameWithBadge
-                  name={resolveSellerDisplayName(listing.profiles)}
-                  verified={profileIsVerified(listing.profiles)}
-                />
-              </p>
-            </div>
-            {showLike && (
-              <ListingLikeButton
-                listingId={listing.id}
-                initialLiked={liked}
-                loggedIn={loggedIn}
-                loginRedirect="/"
-                size="sm"
-                variant="inline"
-              />
-            )}
-          </div>
-          {listing.quality_rating != null && (
-            <StarRating rating={listing.quality_rating} size="sm" />
+        className="mt-3 flex flex-1 flex-col gap-1.5 px-0.5"
+      >
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="line-clamp-2 min-w-0 flex-1 text-sm font-medium leading-snug text-zinc-900 transition group-hover:text-[#003262] dark:text-zinc-100 dark:group-hover:text-[#FDB515]">
+            {listing.title}
+          </h3>
+          {isSold && (
+            <span className="relative z-[2] shrink-0">
+              <ListingStatusBadge status="sold" />
+            </span>
           )}
-          {listing.tags?.length > 0 && (
-            <ListingTags tags={listing.tags.slice(0, 3)} size="sm" />
-          )}
-          <p className="text-xs text-zinc-500">{formatCategory(listing.category)}</p>
         </div>
+
+        {listing.quality_rating != null && (
+          <StarRating rating={listing.quality_rating} size="sm" />
+        )}
+
+        <p className="text-base font-bold text-[#003262] dark:text-[#FDB515]">
+          {formatListingPrice(listing.price_cents, listing.category)}
+        </p>
+
+        <p className="text-xs text-zinc-500">
+          <DisplayNameWithBadge
+            name={resolveSellerDisplayName(listing.profiles)}
+            verified={profileIsVerified(listing.profiles)}
+          />
+        </p>
+
+        {listing.tags?.length > 0 && (
+          <ListingTags tags={listing.tags.slice(0, 3)} size="sm" />
+        )}
+
+        <p className="text-xs text-zinc-400">{formatCategory(listing.category)}</p>
       </Link>
     </div>
   );

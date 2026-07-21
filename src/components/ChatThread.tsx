@@ -81,7 +81,7 @@ export function ChatThread({
   }
 
   return (
-    <div className="flex h-[calc(100vh-12rem)] flex-col rounded-xl border border-zinc-200 dark:border-zinc-800">
+    <div className="flex h-[calc(100vh-12rem)] flex-col overflow-hidden rounded-2xl border border-zinc-200/80 dark:border-zinc-800">
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {messages.map((msg) => {
           const isOwn = msg.sender_id === currentUserId;
@@ -139,7 +139,7 @@ export function ChatThread({
             <button
               type="submit"
               disabled={sending}
-              className="rounded-lg bg-[#003262] px-4 py-2 text-sm text-white hover:bg-[#002244] disabled:opacity-50"
+              className="rounded-full bg-[#003262] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#002244] disabled:opacity-50"
             >
               Send
             </button>

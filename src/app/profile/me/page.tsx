@@ -153,7 +153,7 @@ export default async function MyProfilePage({
     .filter((item): item is BlockedUserItem => item !== null);
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
+    <div className="mx-auto max-w-3xl space-y-8 px-4 py-8 sm:px-8 sm:py-10">
       <AvatarUpload
         avatarUrl={profile?.avatar_url ?? null}
         action={uploadAvatar}
@@ -180,7 +180,7 @@ export default async function MyProfilePage({
         userEmail={user.email ?? ""}
       />
 
-      <section className="rounded-xl bg-zinc-100 p-5 dark:bg-zinc-900">
+      <section className="rounded-2xl border border-zinc-200/80 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-sm font-semibold">My listings</h2>
           <div className="flex items-center gap-3 text-sm">
@@ -238,7 +238,7 @@ export default async function MyProfilePage({
         )}
       </section>
 
-      <section className="rounded-xl bg-zinc-100 p-5 dark:bg-zinc-900">
+      <section className="rounded-2xl border border-zinc-200/80 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
         <h2 className="text-sm font-semibold">Saved</h2>
         <p className="mt-1 text-xs text-zinc-500">
           Listings you&apos;ve liked. Only visible to you.

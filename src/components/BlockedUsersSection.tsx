@@ -50,7 +50,7 @@ export function BlockedUsersSection({ users: initialUsers }: Props) {
   }
 
   return (
-    <section className="rounded-xl bg-zinc-100 p-5 dark:bg-zinc-900">
+    <section className="rounded-2xl border border-zinc-200/80 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
       <h2 className="text-sm font-semibold">Blocked users</h2>
       <p className="mt-1 text-xs text-zinc-500">
         People you&apos;ve blocked. Unblock to message them again and see their

@@ -158,19 +158,20 @@ export default async function BrowsePage({
     selectedCategories[0] === HOUSING_CATEGORY;
 
   const fieldClass =
-    "w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-[#FDB515] focus:ring-1 focus:ring-[#FDB515] dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100";
+    "w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 outline-none transition focus:border-[#003262] focus:ring-2 focus:ring-[#003262]/15 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-[#FDB515]";
 
   return (
-    <>
-      {/* Hero */}
-      <section className="bg-[#003262] px-4 py-10 sm:py-12">
-        <div className="mx-auto max-w-6xl">
-          <h1 className="font-pixel text-3xl font-bold text-white sm:text-4xl">
+    <div className="bg-white dark:bg-zinc-950">
+      <section className="border-b border-zinc-100 px-4 py-8 sm:px-8 sm:py-10">
+        <div className="mx-auto max-w-7xl">
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50 sm:text-4xl">
             Browse Posts
           </h1>
+          <p className="mt-2 text-sm text-zinc-500">
+            Search campus listings from Berkeley affiliates.
+          </p>
 
           <form method="get" action="/browse" className="mt-6 max-w-2xl">
-            {/* preserve active filters when searching */}
             {selectedCategories.map((cat) => (
               <input key={cat} type="hidden" name="category" value={cat} />
             ))}
@@ -195,7 +196,7 @@ export default async function BrowsePage({
             {params.min_sqft && (
               <input type="hidden" name="min_sqft" value={params.min_sqft} />
             )}
-            <div className="flex items-center gap-2 rounded-full bg-white p-2 pl-5 shadow-lg">
+            <div className="flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 p-1.5 pl-5 shadow-sm transition focus-within:border-[#003262] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#003262]/15">
               <input
                 name="q"
                 type="search"
@@ -205,7 +206,7 @@ export default async function BrowsePage({
               />
               <button
                 type="submit"
-                className="shrink-0 rounded-full bg-[#003262] px-8 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#002244]"
+                className="shrink-0 rounded-full bg-[#003262] px-7 py-2.5 text-sm font-semibold text-white transition hover:bg-[#002244]"
               >
                 Search
               </button>
@@ -214,31 +215,26 @@ export default async function BrowsePage({
         </div>
       </section>
 
-      {/* Sort */}
-      <div className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-        <div className="mx-auto flex max-w-6xl justify-end px-4 py-2.5">
-          <SortMenu
-            activeValue={sort}
-            options={SORT_OPTIONS.map((opt) => ({
-              value: opt.value,
-              label: opt.label,
-              href: buildHref(params, {
-                sort: opt.value,
-                limit: undefined,
-              }),
-            }))}
-          />
-        </div>
+      <div className="mx-auto flex max-w-7xl justify-end px-4 py-3 sm:px-8">
+        <SortMenu
+          activeValue={sort}
+          options={SORT_OPTIONS.map((opt) => ({
+            value: opt.value,
+            label: opt.label,
+            href: buildHref(params, {
+              sort: opt.value,
+              limit: undefined,
+            }),
+          }))}
+        />
       </div>
 
-      {/* Body: sidebar + grid */}
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 lg:flex-row">
-        {/* Filters sidebar */}
+      <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 pb-10 sm:px-8 lg:flex-row">
         <aside className="w-full shrink-0 lg:w-64">
           <form
             method="get"
             action="/browse"
-            className="space-y-6 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900"
+            className="space-y-6 rounded-2xl border border-zinc-200/80 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950"
           >
             {params.q && <input type="hidden" name="q" value={params.q} />}
             {sort !== "recent" && <input type="hidden" name="sort" value={sort} />}
@@ -249,7 +245,7 @@ export default async function BrowsePage({
               </h2>
               <Link
                 href="/browse"
-                className="text-xs text-zinc-400 hover:text-[#003262] dark:hover:text-[#FDB515]"
+                className="text-xs text-zinc-400 transition hover:text-[#003262] dark:hover:text-[#FDB515]"
               >
                 Clear
               </Link>
@@ -340,14 +336,13 @@ export default async function BrowsePage({
 
             <button
               type="submit"
-              className="w-full rounded-lg bg-[#003262] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#002244]"
+              className="w-full rounded-full bg-[#003262] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#002244]"
             >
               Apply filters
             </button>
           </form>
         </aside>
 
-        {/* Results */}
         <div className="min-w-0 flex-1 space-y-6">
           <p className="text-sm text-zinc-500">
             {resultCount} {resultCount === 1 ? "result" : "results"}
@@ -359,7 +354,7 @@ export default async function BrowsePage({
             </p>
           ) : (
             <>
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
                 {items.map((listing) => (
                   <ListingCard
                     key={listing.id}
@@ -377,7 +372,7 @@ export default async function BrowsePage({
                     href={buildHref(params, {
                       limit: String(displayLimit + PAGE_SIZE),
                     })}
-                    className="rounded-lg bg-[#003262] px-6 py-2.5 text-sm font-medium text-white transition hover:bg-[#002244]"
+                    className="rounded-full bg-[#003262] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#002244]"
                   >
                     See more
                   </Link>
@@ -387,6 +382,6 @@ export default async function BrowsePage({
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }

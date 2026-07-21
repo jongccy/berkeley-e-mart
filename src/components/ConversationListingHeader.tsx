@@ -30,7 +30,7 @@ export function ConversationListingHeader({
 
   return (
     <div
-      className={`flex gap-4 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800${isSold ? " relative" : ""}`}
+      className={`flex gap-4 rounded-2xl border border-zinc-200/80 p-4 dark:border-zinc-800${isSold ? " relative" : ""}`}
     >
       {isSold && <SoldListingOverlay />}
       <Link
