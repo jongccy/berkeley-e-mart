@@ -1,23 +1,30 @@
-const BELT_A = [
-  "Photo 1",
-  "Photo 2",
-  "Photo 3",
-  "Photo 4",
-  "Photo 5",
-  "Photo 6",
-] as const;
+import Image from "next/image";
 
-const BELT_B = [
-  "Photo A",
-  "Photo B",
-  "Photo C",
-  "Photo D",
-  "Photo E",
-  "Photo F",
-] as const;
+type BeltItem = {
+  src?: string;
+  alt: string;
+};
+
+const BELT_A: BeltItem[] = [
+  { src: "/promos/belt-a/01-air-fryer.png?v=2", alt: "Air fryer" },
+  { src: "/promos/belt-a/02-chair.png?v=2", alt: "Office chair" },
+  { src: "/promos/belt-a/03-vacuum.png?v=2", alt: "Vacuum cleaner" },
+  { src: "/promos/belt-a/04-book.png?v=2", alt: "Open book" },
+  { src: "/promos/belt-a/05-monitor.png?v=2", alt: "Computer monitor" },
+  { src: "/promos/belt-a/06-cal-shirt.png?v=2", alt: "Cal t-shirt" },
+];
+
+const BELT_B: BeltItem[] = [
+  { src: "/promos/belt-b/01-scooter.png?v=1", alt: "Electric scooter" },
+  { src: "/promos/belt-b/02-guitar.png?v=1", alt: "Electric guitar" },
+  { src: "/promos/belt-b/03-headphones.png?v=1", alt: "Headphones" },
+  { src: "/promos/belt-b/04-backpack.png?v=1", alt: "Backpack" },
+  { src: "/promos/belt-b/05-plates.png?v=1", alt: "Stacked plates" },
+  { src: "/promos/belt-b/06-keyboard.png?v=1", alt: "Keyboard" },
+];
 
 type BeltProps = {
-  items: readonly string[];
+  items: readonly BeltItem[];
   offset?: boolean;
 };
 
@@ -29,15 +36,26 @@ function ConveyorBelt({ items, offset = false }: BeltProps) {
       className={`relative flex-1 overflow-hidden ${offset ? "pt-6" : "pb-6"}`}
     >
       <div className="home-conveyor-down flex flex-col gap-3 will-change-transform">
-        {loop.map((label, index) => (
+        {loop.map((item, index) => (
           <div
-            key={`${label}-${index}`}
-            className="aspect-square w-full shrink-0 rounded-2xl bg-zinc-800"
+            key={`${item.alt}-${index}`}
+            className="relative aspect-square w-full shrink-0 overflow-hidden rounded-2xl bg-[#289958]"
             aria-hidden
           >
-            <span className="flex h-full items-center justify-center px-2 text-center text-xs font-medium leading-snug text-zinc-400">
-              {label}
-            </span>
+            {item.src ? (
+              <Image
+                src={item.src}
+                alt=""
+                fill
+                unoptimized
+                sizes="120px"
+                className="object-contain object-center p-1"
+              />
+            ) : (
+              <span className="flex h-full items-center justify-center px-2 text-center text-xs font-medium leading-snug text-[#fff7ee]/70">
+                {item.alt}
+              </span>
+            )}
           </div>
         ))}
       </div>
