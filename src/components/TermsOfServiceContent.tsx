@@ -18,10 +18,10 @@ export function TermsOfServiceContent() {
           Eligibility
         </h2>
         <p>
-          Calket is open only to current University of California,
-          Berkeley students, alumni, faculty, and staff. You must sign in with a
-          valid @berkeley.edu email address via Google OAuth. One account per
-          person.
+          Calket is open only to people with a valid University of
+          California, Berkeley email address (for example, @berkeley.edu or a
+          Berkeley subdomain such as @haas.berkeley.edu). You must sign in with
+          that email via Google. One account per person.
         </p>
       </section>
 
@@ -31,7 +31,7 @@ export function TermsOfServiceContent() {
         </h2>
         <ul className="list-disc space-y-2 pl-5">
           <li>You are responsible for all activity under your account.</li>
-          <li>Do not share your login credentials with others.</li>
+          <li>Do not share access to your account with others.</li>
           <li>
             Creating multiple accounts or impersonating another person is not
             allowed.
@@ -66,12 +66,12 @@ export function TermsOfServiceContent() {
           Your Content
         </h2>
         <p>
-          You own the content you post (listings, photos, messages). By posting
-          it, you grant Calket a limited license to display and store
-          your content as needed to operate the platform. We will not use your
-          content for advertising or sell it to third parties. You are
-          responsible for ensuring that anything you post does not violate anyone
-          else&apos;s rights.
+          You own the content you post (listings, requests, photos, messages,
+          and profile information). By posting it, you grant Calket a limited
+          license to display and store your content as needed to operate the
+          platform. We will not use your content for advertising or sell it to
+          third parties. You are responsible for ensuring that anything you post
+          does not violate anyone else&apos;s rights.
         </p>
       </section>
 
@@ -80,26 +80,11 @@ export function TermsOfServiceContent() {
           Transactions
         </h2>
         <p>
-          All transactions on Calket are conducted in person between
-          buyers and sellers. We do not process payments and are not a party to
-          any transaction. We are not responsible for the condition of items
-          sold, failed meetups, or disputes between users. Use good judgment and
-          meet in safe, public locations.
-        </p>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-          Reviews &amp; Ratings
-        </h2>
-        <p>
-          After completing a transaction, both parties may leave a review for the
-          other. Reviews are permanent and cannot be edited or deleted once
-          submitted. Please ensure your review is honest, accurate, and respectful
-          before submitting. Reviews that violate our community standards (e.g.,
-          harassment, defamation, or spam) may be removed by our team. By
-          submitting a review, you confirm that it reflects your genuine
-          experience with the transaction.
+          Calket is a messaging marketplace. Buyers and sellers arrange
+          transactions themselves, typically in person. We do not process
+          payments and are not a party to any transaction. We are not responsible
+          for the condition of items sold, failed meetups, or disputes between
+          users. Use good judgment and meet in safe, public locations.
         </p>
       </section>
 
@@ -138,21 +123,6 @@ export function TermsOfServiceContent() {
           platform after changes are posted constitutes acceptance of the updated
           terms. We will update the &ldquo;Last updated&rdquo; date at the top of
           this page when changes are made.
-        </p>
-      </section>
-
-      <section className="space-y-3 border-t border-zinc-200 pt-6 dark:border-zinc-800">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-          Contact
-        </h2>
-        <p>
-          Questions or concerns? Reach us at{" "}
-          <a
-            href="mailto:jongsuhpark@berkeley.edu"
-            className="font-medium text-[#003262] underline dark:text-[#FDB515]"
-          >
-            jongsuhpark@berkeley.edu
-          </a>
         </p>
       </section>
     </article>
