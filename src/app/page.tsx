@@ -4,11 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { HomeListingCard } from "@/components/HomeListingCard";
 import { HomePromoBanners } from "@/components/HomePromoBanners";
 import { HomeCategoryRow } from "@/components/HomeCategoryRow";
-import { RecommendationsSection } from "@/components/RecommendationsSection";
-import {
-  isAuthenticatedBerkeleyUser,
-  isVerifiedBerkeleyUser,
-} from "@/lib/supabase/auth-helpers";
+import { isAuthenticatedBerkeleyUser } from "@/lib/supabase/auth-helpers";
 import { getLikedListingIds } from "@/lib/listing-likes";
 import { expireSoldListings } from "@/lib/expire-sold-listings";
 import { getSoldListingCutoffIso } from "@/lib/sold-listings";
@@ -34,7 +30,7 @@ export const metadata: Metadata = {
   },
 };
 
-const RECENT_LIMIT = 10;
+const RECENT_LIMIT = 5;
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -107,10 +103,6 @@ export default async function HomePage() {
             </div>
           )}
         </section>
-
-        {user && isVerifiedBerkeleyUser(user) && (
-          <RecommendationsSection userId={user.id} />
-        )}
       </div>
     </div>
   );
