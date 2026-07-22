@@ -5,6 +5,10 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
   : "*.supabase.co";
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    // A stray lockfile in the home directory makes Next infer the wrong root.
+    root: __dirname,
+  },
   experimental: {
     serverActions: {
       // Phone photos easily exceed the default 1MB Server Action limit.
