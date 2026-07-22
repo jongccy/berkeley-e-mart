@@ -171,48 +171,6 @@ export default async function BrowsePage({
           <p className="mt-2 text-sm text-zinc-500">
             Search campus listings from Berkeley affiliates.
           </p>
-
-          <form method="get" action="/browse" className="mt-6 max-w-2xl">
-            {selectedCategories.map((cat) => (
-              <input key={cat} type="hidden" name="category" value={cat} />
-            ))}
-            {params.min_price && (
-              <input type="hidden" name="min_price" value={params.min_price} />
-            )}
-            {params.max_price && (
-              <input type="hidden" name="max_price" value={params.max_price} />
-            )}
-            {params.rating && (
-              <input type="hidden" name="rating" value={params.rating} />
-            )}
-            {sort !== "recent" && (
-              <input type="hidden" name="sort" value={sort} />
-            )}
-            {params.min_beds && (
-              <input type="hidden" name="min_beds" value={params.min_beds} />
-            )}
-            {params.min_baths && (
-              <input type="hidden" name="min_baths" value={params.min_baths} />
-            )}
-            {params.min_sqft && (
-              <input type="hidden" name="min_sqft" value={params.min_sqft} />
-            )}
-            <div className="flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 p-1.5 pl-5 shadow-sm transition focus-within:border-[#003262] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#003262]/15">
-              <input
-                name="q"
-                type="search"
-                placeholder="Search listings..."
-                defaultValue={params.q ?? ""}
-                className="min-w-0 flex-1 bg-transparent py-2 text-sm text-zinc-900 outline-none placeholder:text-zinc-400"
-              />
-              <button
-                type="submit"
-                className="shrink-0 rounded-full bg-[#003262] px-7 py-2.5 text-sm font-semibold text-white transition hover:bg-[#002244]"
-              >
-                Search
-              </button>
-            </div>
-          </form>
         </div>
       </section>
 
