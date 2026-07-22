@@ -148,7 +148,7 @@ export default async function WantedPage() {
             <WantedPostList
               posts={myRequests}
               showRequester={false}
-              emptyMessage="You haven't posted any open requests yet."
+              emptyMessage="You haven't posted a request yet. Ask for something and other students can reach out."
             />
           </section>
         )}
@@ -160,7 +160,7 @@ export default async function WantedPage() {
           <WantedPostList
             posts={otherRequests}
             showRequester
-            emptyMessage="No open requests from other students yet."
+            emptyMessage="No open requests from other students right now. Check back soon."
           />
         </section>
       </div>

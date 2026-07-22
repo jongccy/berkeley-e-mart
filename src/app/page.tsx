@@ -89,7 +89,7 @@ export default async function HomePage() {
         <section className="space-y-5">
           <div className="flex items-end justify-between gap-4">
             <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50 sm:text-2xl">
-              Most recent listings
+              Just posted
             </h2>
             <Link
               href="/browse"
@@ -130,7 +130,7 @@ export default async function HomePage() {
                 Recent requests
               </h2>
               <p className="mt-1 text-sm text-zinc-500">
-                What students are looking to buy
+                What other students are looking to buy
               </p>
             </div>
             <Link

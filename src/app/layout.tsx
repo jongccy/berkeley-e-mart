@@ -75,7 +75,7 @@ export default async function RootLayout({
       <main className="flex-1">{children}</main>
       <footer className="space-y-2 border-t border-zinc-200 bg-white py-6 text-center text-xs text-zinc-600">
         <p>
-          {SITE_NAME} — Buy and Sell with verified Berkeley affiliates.
+          {SITE_NAME} · A marketplace for Cal, by Cal · Go Bears! 🐻
         </p>
         <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
           <Link

@@ -1,3 +1,6 @@
+/** Matches the 1 (poor) to 5 (like new) scale used by QualityStars. */
+const CONDITION_LABELS = ["Poor", "Fair", "Good", "Very good", "Like new"];
+
 type Props = {
   rating: number;
   size?: "sm" | "md";
@@ -6,6 +9,7 @@ type Props = {
 
 export function StarRating({ rating, size = "md", showLabel = true }: Props) {
   const textSize = size === "sm" ? "text-sm" : "text-base";
+  const conditionLabel = CONDITION_LABELS[rating - 1];
 
   return (
     <div
@@ -23,7 +27,11 @@ export function StarRating({ rating, size = "md", showLabel = true }: Props) {
           ★
         </span>
       ))}
-      <span className="ml-1 text-zinc-500">({rating}/5)</span>
+      {conditionLabel && (
+        <span className="ml-1.5 font-medium text-zinc-600 dark:text-zinc-400">
+          {conditionLabel}
+        </span>
+      )}
     </div>
   );
 }

@@ -57,7 +57,7 @@ export default async function SavedListingsPage() {
       {savedListings.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-zinc-200 py-16 text-center dark:border-zinc-700">
           <p className="text-sm text-zinc-500">
-            You haven&apos;t saved any listings yet.
+            Nothing saved yet. Save a listing to keep it here for later.
           </p>
           <Link
             href="/"

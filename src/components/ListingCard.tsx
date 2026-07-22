@@ -69,7 +69,7 @@ export function ListingCard({
         className="mt-3 flex flex-1 flex-col gap-1.5 px-0.5"
       >
         <div className="flex items-start justify-between gap-2">
-          <h3 className="line-clamp-2 min-w-0 flex-1 text-sm font-medium leading-snug text-zinc-900 transition group-hover:text-[#003262] dark:text-zinc-100 dark:group-hover:text-[#FDB515]">
+          <h3 className="line-clamp-2 min-w-0 flex-1 text-base font-semibold leading-snug text-zinc-900 transition group-hover:text-[#003262] dark:text-zinc-100 dark:group-hover:text-[#FDB515]">
             {listing.title}
           </h3>
           {isSold && (
@@ -83,7 +83,7 @@ export function ListingCard({
           <StarRating rating={listing.quality_rating} size="sm" />
         )}
 
-        <p className="text-base font-bold text-[#003262] dark:text-[#FDB515]">
+        <p className="text-sm font-semibold tabular-nums text-[#003262] dark:text-[#FDB515]">
           {formatListingPrice(listing.price_cents, listing.category)}
         </p>
 

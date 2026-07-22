@@ -350,7 +350,8 @@ export default async function BrowsePage({
 
           {items.length === 0 ? (
             <p className="py-12 text-center text-zinc-500">
-              No listings match your search or filters.
+              Nothing matches those filters. Try a broader price range or a
+              different category.
             </p>
           ) : (
             <>

@@ -113,7 +113,8 @@ export function InboxConversationList({
   if (rows.length === 0) {
     return (
       <p className="text-zinc-500">
-        No conversations yet. Message someone from a listing or request page.
+        No conversations yet. Message a student from any listing or request to
+        start one.
       </p>
     );
   }
