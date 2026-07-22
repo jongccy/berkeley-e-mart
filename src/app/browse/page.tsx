@@ -162,8 +162,8 @@ export default async function BrowsePage({
 
   return (
     <div className="bg-white dark:bg-zinc-950">
-      <section className="border-b border-zinc-100 px-4 py-8 sm:px-8 sm:py-10">
-        <div className="mx-auto max-w-7xl">
+      <section className="border-b border-zinc-100 py-8 sm:py-10">
+        <div className="mx-auto max-w-7xl px-4 sm:px-8">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50 sm:text-4xl">
             Browse Posts
           </h1>
