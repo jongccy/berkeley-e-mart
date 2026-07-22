@@ -98,7 +98,7 @@ export function MessagingProvider({
 
       window.setTimeout(() => {
         dismissToast(id);
-      }, 5000);
+      }, 10000);
     },
     [dismissToast]
   );
@@ -182,14 +182,23 @@ export function MessagingProvider({
         channel = null;
       }
 
-      // Private per-user topic — messages are pushed from a DB trigger via
-      // realtime.send, so every recipient gets events (not just some RLS paths).
+      // Listen for new message rows the user can read (RLS-filtered).
+      // Private Broadcast topics are currently unauthorized on this project,
+      // so postgres_changes is what drives toasts + live inbox/thread updates.
       channel = supabase
-        .channel(`inbox:${userId}`, { config: { private: true } })
-        .on("broadcast", { event: "new_message" }, ({ payload }) => {
-          const message = asMessage(payload);
-          if (message) void handleIncomingMessage(message);
-        })
+        .channel(`inbox-pg:${userId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "messages",
+          },
+          ({ new: row }) => {
+            const message = asMessage(row);
+            if (message) void handleIncomingMessage(message);
+          }
+        )
         .subscribe((status, err) => {
           if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
             console.error("Messaging realtime subscribe failed:", status, err);
