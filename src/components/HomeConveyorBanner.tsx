@@ -76,7 +76,7 @@ export function HomeConveyorBanner() {
       </div>
 
       <div className="flex h-full flex-1 items-center px-3 py-3 sm:px-4">
-        <p className="w-full text-[clamp(1.35rem,2.6vw,2.35rem)] font-bold leading-[1.05] tracking-tight text-[#fff7ee]">
+        <p className="w-full text-[clamp(1.6rem,3.2vw,2.85rem)] font-bold leading-[1.05] tracking-tight text-[#fff7ee]">
           Safer Buying
           <br />
           and Selling
