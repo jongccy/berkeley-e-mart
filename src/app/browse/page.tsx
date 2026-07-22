@@ -8,6 +8,7 @@ import { expireSoldListings } from "@/lib/expire-sold-listings";
 import { getSoldListingCutoffIso } from "@/lib/sold-listings";
 import { PROFILE_IDENTITY_SELECT } from "@/lib/profile-display";
 import { CATEGORIES, HOUSING_CATEGORY } from "@/lib/constants";
+import { applyListingTextSearch } from "@/lib/listing-search";
 import { applyListingCategoryFilter } from "@/lib/listing-filters";
 import {
   appendHousingFilterParams,
@@ -131,7 +132,7 @@ export default async function BrowsePage({
     query = applyListingCategoryFilter(query, selectedCategories);
   }
   if (params.q) {
-    query = query.or(`title.ilike.%${params.q}%,description.ilike.%${params.q}%`);
+    query = applyListingTextSearch(query, params.q);
   }
   if (params.min_price) {
     query = query.gte("price_cents", parseInt(params.min_price, 10) * 100);
