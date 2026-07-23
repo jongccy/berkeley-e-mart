@@ -2,7 +2,16 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isBerkeleyEmail, TERMS_ACKNOWLEDGED_COOKIE } from "@/lib/auth";
+import { AVATAR_BUCKET } from "@/lib/constants";
 import { isVerifiedBerkeleyUser } from "@/lib/supabase/auth-helpers";
+
+function isCustomUploadedAvatar(url: string | null | undefined): boolean {
+  if (!url) return false;
+  return (
+    url.includes(`/storage/v1/object/public/${AVATAR_BUCKET}/`) ||
+    url.includes(`/${AVATAR_BUCKET}/`)
+  );
+}
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -46,18 +55,31 @@ export async function GET(request: Request) {
     user.user_metadata?.name ??
     user.email.split("@")[0];
 
+  const googleAvatar =
+    (user.user_metadata?.avatar_url as string | undefined) ?? null;
+
+  const { data: existing } = await supabase
+    .from("profiles")
+    .select("avatar_url")
+    .eq("id", user.id)
+    .maybeSingle();
+
   const profilePayload: {
     id: string;
     display_name: string;
-    avatar_url: string | null;
+    avatar_url?: string | null;
     is_verified_berkeley: boolean;
     terms_accepted_at?: string;
   } = {
     id: user.id,
     display_name: displayName,
-    avatar_url: user.user_metadata?.avatar_url ?? null,
     is_verified_berkeley: isVerifiedBerkeleyUser(user),
   };
+
+  // Never overwrite a user-uploaded avatar with the Google photo on re-login.
+  if (!isCustomUploadedAvatar(existing?.avatar_url)) {
+    profilePayload.avatar_url = googleAvatar;
+  }
 
   if (termsAcknowledged) {
     profilePayload.terms_accepted_at = new Date().toISOString();

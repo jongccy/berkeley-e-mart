@@ -82,13 +82,13 @@ export function HomePromoBanners() {
 
   return (
     <section aria-label="Featured promotions" className="space-y-4">
-      {/* Mobile carousel */}
+      {/* Mobile carousel — stay inside page padding to avoid horizontal page shift */}
       <div className="md:hidden">
         <div
           ref={mobileScrollerRef}
-          className="-mx-4 flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
-          <div className="w-full min-w-full shrink-0 snap-start px-4">
+          <div className="w-full min-w-full shrink-0 snap-start">
             <div className="home-promo-enter relative aspect-[1024/576] overflow-hidden rounded-3xl bg-[#003262]">
               <Image
                 src="/promos/welcome-calket.jpg"
@@ -103,7 +103,7 @@ export function HomePromoBanners() {
             </div>
           </div>
 
-          <div className="w-full min-w-full shrink-0 snap-start px-4">
+          <div className="w-full min-w-full shrink-0 snap-start">
             <div className="grid aspect-[1024/576] grid-cols-2 gap-3">
               <div className="relative min-h-0 overflow-hidden rounded-3xl">
                 <div className="absolute inset-0">

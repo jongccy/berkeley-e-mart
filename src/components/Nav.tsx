@@ -28,12 +28,12 @@ export async function Nav() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-zinc-200/80 bg-white/95 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/95">
-      <div className="mx-auto flex max-w-7xl items-center gap-3 py-3 pl-4 pr-0 sm:gap-5 sm:pl-8">
+      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:gap-5 sm:px-8">
         <CalketLogo height={68} rounded="rounded-xl" />
 
         <NavSearch className="mx-1 hidden sm:flex sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl" />
 
-        <nav className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+        <nav className="ml-auto flex shrink-0 items-center gap-2 pr-0.5 sm:gap-3">
           {user ? (
             <>
               <div className="hidden items-center gap-3 text-sm font-semibold text-[#003262] md:flex dark:text-[#FDB515]">

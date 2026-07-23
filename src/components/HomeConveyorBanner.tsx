@@ -81,9 +81,9 @@ export function HomeConveyorBanner({ compact = false }: { compact?: boolean }) {
       </div>
 
       <div
-        className={`flex min-w-0 flex-1 ${
+        className={`flex min-w-0 flex-1 overflow-hidden ${
           compact
-            ? "items-center overflow-visible px-1.5 py-2"
+            ? "items-center px-1.5 py-2"
             : "items-center px-3 py-3 sm:px-4"
         }`}
       >
@@ -101,7 +101,7 @@ export function HomeConveyorBanner({ compact = false }: { compact?: boolean }) {
             ).map((line) => (
               <p
                 key={line}
-                className="m-0 w-full min-w-0 text-[clamp(0.78rem,4vw,1.05rem)] font-bold leading-none tracking-tight text-[#fff7ee]"
+                className="m-0 w-full min-w-0 truncate text-[clamp(0.7rem,3.6vw,1.05rem)] font-bold leading-none tracking-tight text-[#fff7ee]"
               >
                 {line}
               </p>

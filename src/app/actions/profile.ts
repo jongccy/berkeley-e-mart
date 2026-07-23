@@ -113,9 +113,12 @@ export async function uploadAvatar(formData: FormData) {
     data: { publicUrl },
   } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path);
 
+  // Cache-bust so the new image shows immediately after re-upload to the same path.
+  const avatarUrl = `${publicUrl}?v=${Date.now()}`;
+
   const { error } = await supabase
     .from("profiles")
-    .update({ avatar_url: publicUrl })
+    .update({ avatar_url: avatarUrl })
     .eq("id", user.id);
 
   if (error) {
