@@ -48,15 +48,6 @@ export async function Nav() {
                 </Link>
                 <NavInboxLink />
               </div>
-              <div className="flex items-center gap-2 md:hidden">
-                <Link
-                  href="/browse"
-                  className="rounded-full px-2.5 py-1.5 text-sm font-semibold text-[#003262] dark:text-[#FDB515]"
-                >
-                  Browse
-                </Link>
-                <NavInboxLink />
-              </div>
               <NavProfileMenu avatarUrl={avatarUrl} />
             </>
           ) : (

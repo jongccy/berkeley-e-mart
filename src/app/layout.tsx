@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
 import { Nav } from "@/components/Nav";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { MessagingProvider } from "@/components/messaging/MessagingProvider";
 import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 import { SiteStructuredData } from "@/components/SiteStructuredData";
@@ -72,8 +73,12 @@ export default async function RootLayout({
     <>
       <Nav />
       <VerifyBanner user={user} />
-      <main className="flex-1">{children}</main>
-      <footer className="space-y-2 border-t border-zinc-200 bg-white py-6 text-center text-xs text-zinc-600">
+      <main className={`flex-1 ${user ? "pb-24 md:pb-0" : ""}`}>{children}</main>
+      <footer
+        className={`space-y-2 border-t border-zinc-200 bg-white py-6 text-center text-xs text-zinc-600 ${
+          user ? "mb-20 md:mb-0" : ""
+        }`}
+      >
         <p>
           {SITE_NAME} · A marketplace for Cal, by Cal · Go Bears! 🐻
         </p>
@@ -96,6 +101,7 @@ export default async function RootLayout({
         </p>
       </footer>
       <ScrollToTopButton />
+      {user ? <MobileBottomNav /> : null}
     </>
   );
 

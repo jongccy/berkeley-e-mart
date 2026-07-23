@@ -63,28 +63,61 @@ function ConveyorBelt({ items, offset = false }: BeltProps) {
   );
 }
 
-export function HomeConveyorBanner() {
+export function HomeConveyorBanner({ compact = false }: { compact?: boolean }) {
   return (
     <div
       className="home-promo-enter flex h-full w-full overflow-hidden rounded-3xl bg-[#289958]"
       style={{ animationDelay: "0.06s" }}
       aria-label="Safer Buying and Selling with UC Berkeley Affiliates"
     >
-      <div className="flex h-full w-[52%] gap-3 p-2 sm:p-2.5" aria-hidden>
+      <div
+        className={`flex h-full ${
+          compact ? "w-[34%] gap-0.5 p-1" : "w-[52%] gap-3 p-2 sm:p-2.5"
+        }`}
+        aria-hidden
+      >
         <ConveyorBelt items={BELT_A} />
         <ConveyorBelt items={BELT_B} offset />
       </div>
 
-      <div className="flex h-full flex-1 items-center px-3 py-3 sm:px-4">
-        <p className="w-full text-[clamp(1.6rem,3.2vw,2.85rem)] font-bold leading-[1.05] tracking-tight text-[#fff7ee]">
-          Safer Buying
-          <br />
-          and Selling
-          <br />
-          with
-          <br />
-          UC&nbsp;Berkeley Affiliates
-        </p>
+      <div
+        className={`flex min-w-0 flex-1 ${
+          compact
+            ? "items-center overflow-visible px-1.5 py-2"
+            : "items-center px-3 py-3 sm:px-4"
+        }`}
+      >
+        {compact ? (
+          <div className="flex w-full min-w-0 flex-col gap-[0.35em]">
+            {(
+              [
+                "Safer",
+                "Buying",
+                "and Selling",
+                "with",
+                "UC Berkeley",
+                "Affiliates",
+              ] as const
+            ).map((line) => (
+              <p
+                key={line}
+                className="m-0 w-full min-w-0 text-[clamp(0.78rem,4vw,1.05rem)] font-bold leading-none tracking-tight text-[#fff7ee]"
+              >
+                {line}
+              </p>
+            ))}
+          </div>
+        ) : (
+          <p className="w-full min-w-0 text-[clamp(1.6rem,3.2vw,2.85rem)] font-bold leading-[1.05] tracking-tight text-[#fff7ee]">
+            Safer Buying
+            <br />
+            and Selling
+            <br />
+            with
+            <br />
+            UC&nbsp;Berkeley Affiliates
+          </p>
+        )}
       </div>
     </div>
   );

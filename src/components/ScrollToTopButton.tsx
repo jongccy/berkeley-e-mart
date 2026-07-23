@@ -33,7 +33,7 @@ export function ScrollToTopButton() {
       type="button"
       onClick={scrollToTop}
       aria-label="Back to top"
-      className={`fixed bottom-6 right-6 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-[#003262] text-white shadow-lg transition hover:bg-[#002244] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FDB515] focus-visible:ring-offset-2 ${
+      className={`fixed bottom-24 right-4 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-[#003262] text-white shadow-lg transition hover:bg-[#002244] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FDB515] focus-visible:ring-offset-2 md:bottom-6 md:right-6 ${
         visible
           ? "translate-y-0 opacity-100"
           : "pointer-events-none translate-y-2 opacity-0"
