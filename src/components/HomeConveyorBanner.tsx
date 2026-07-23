@@ -71,8 +71,8 @@ export function HomeConveyorBanner({ compact = false }: { compact?: boolean }) {
       aria-label="Safer Buying and Selling with UC Berkeley Affiliates"
     >
       <div
-        className={`flex h-full ${
-          compact ? "w-[34%] gap-0.5 p-1" : "w-[52%] gap-3 p-2 sm:p-2.5"
+        className={`flex h-full shrink-0 ${
+          compact ? "w-[34%] gap-0.5 p-1" : "w-[40%] gap-2 p-2 sm:gap-2.5 sm:p-2.5"
         }`}
         aria-hidden
       >
@@ -81,9 +81,9 @@ export function HomeConveyorBanner({ compact = false }: { compact?: boolean }) {
       </div>
 
       <div
-        className={`flex min-w-0 flex-1 overflow-hidden ${
+        className={`flex min-w-0 flex-1 ${
           compact
-            ? "items-center px-1.5 py-2"
+            ? "items-center overflow-hidden px-1.5 py-2"
             : "items-center px-3 py-3 sm:px-4"
         }`}
       >
@@ -108,14 +108,16 @@ export function HomeConveyorBanner({ compact = false }: { compact?: boolean }) {
             ))}
           </div>
         ) : (
-          <p className="w-full min-w-0 text-[clamp(1.6rem,3.2vw,2.85rem)] font-bold leading-[1.05] tracking-tight text-[#fff7ee]">
+          <p className="w-full min-w-0 text-[clamp(1.35rem,2.6vw,2.55rem)] font-bold leading-[1.08] tracking-tight text-[#fff7ee]">
             Safer Buying
             <br />
             and Selling
             <br />
             with
             <br />
-            UC&nbsp;Berkeley Affiliates
+            UC Berkeley
+            <br />
+            Affiliates
           </p>
         )}
       </div>
