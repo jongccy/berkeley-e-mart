@@ -11,6 +11,14 @@ import { CATEGORIES, HOUSING_CATEGORY } from "@/lib/constants";
 import { applyListingTextSearch } from "@/lib/listing-search";
 import { applyListingCategoryFilter } from "@/lib/listing-filters";
 import {
+  appendListingTagParams,
+  applyListingTagFilter,
+  buildBrowseTagOptions,
+  isTagSelected,
+  parseListingTagParams,
+} from "@/lib/listing-tag-filters";
+import { getTrendingListingTags } from "@/lib/trending-tags";
+import {
   appendHousingFilterParams,
   applyHousingListingFilters,
   isHousingCategorySelected,
@@ -45,6 +53,7 @@ type SortKey = "recent" | "price_asc" | "price_desc";
 type SearchParams = HousingFilterParams & {
   q?: string;
   category?: string | string[];
+  tag?: string | string[];
   min_price?: string;
   max_price?: string;
   rating?: string;
@@ -70,6 +79,7 @@ function buildHref(params: SearchParams, overrides: Record<string, string | stri
 
   if (merged.q) search.set("q", merged.q);
   for (const cat of toArray(merged.category)) search.append("category", cat);
+  appendListingTagParams(search, parseListingTagParams(merged.tag));
   if (merged.min_price) search.set("min_price", merged.min_price);
   if (merged.max_price) search.set("max_price", merged.max_price);
   if (merged.rating) search.set("rating", merged.rating);
@@ -97,6 +107,7 @@ export default async function BrowsePage({
   } = await supabase.auth.getUser();
 
   const selectedCategories = toArray(params.category);
+  const selectedTags = parseListingTagParams(params.tag);
   const minRating = parseInt(params.rating ?? "", 10);
   const sort: SortKey =
     params.sort === "price_asc" || params.sort === "price_desc"
@@ -110,6 +121,8 @@ export default async function BrowsePage({
       : PAGE_SIZE;
 
   const soldCutoff = getSoldListingCutoffIso();
+  const trendingTags = await getTrendingListingTags(supabase, 10);
+  const tagOptions = buildBrowseTagOptions(trendingTags, selectedTags);
 
   let query = supabase
     .from("listings")
@@ -130,6 +143,9 @@ export default async function BrowsePage({
 
   if (selectedCategories.length > 0) {
     query = applyListingCategoryFilter(query, selectedCategories);
+  }
+  if (selectedTags.length > 0) {
+    query = applyListingTagFilter(query, selectedTags);
   }
   if (params.q) {
     query = applyListingTextSearch(query, params.q);
@@ -157,6 +173,8 @@ export default async function BrowsePage({
   const housingOnlySelected =
     selectedCategories.length === 1 &&
     selectedCategories[0] === HOUSING_CATEGORY;
+  const trendingOptions = tagOptions.filter((option) => option.trending);
+  const moreTagOptions = tagOptions.filter((option) => !option.trending);
 
   const fieldClass =
     "w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-900 outline-none transition focus:border-[#003262] focus:ring-2 focus:ring-[#003262]/15 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-[#FDB515]";
@@ -265,6 +283,77 @@ export default async function BrowsePage({
               fieldClass={fieldClass}
             />
 
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                Tags
+              </p>
+
+              {trendingOptions.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-[11px] font-medium text-[#003262] dark:text-[#FDB515]">
+                    Trending now
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {trendingOptions.map((option) => (
+                      <label
+                        key={`trend-${option.tag}`}
+                        className="inline-flex cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          name="tag"
+                          value={option.tag}
+                          defaultChecked={isTagSelected(
+                            selectedTags,
+                            option.tag
+                          )}
+                          className="peer sr-only"
+                        />
+                        <span className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-medium text-zinc-700 transition peer-checked:border-[#003262] peer-checked:bg-[#003262] peer-checked:text-white hover:border-[#003262]/40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:peer-checked:border-[#FDB515] dark:peer-checked:bg-[#FDB515] dark:peer-checked:text-[#003262]">
+                          <span>{option.tag}</span>
+                          {option.useCount != null && (
+                            <span className="tabular-nums opacity-60">
+                              {option.useCount}
+                            </span>
+                          )}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {moreTagOptions.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-[11px] font-medium text-zinc-500">
+                    {trendingOptions.length > 0 ? "More tags" : "Popular tags"}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {moreTagOptions.map((option) => (
+                      <label
+                        key={`more-${option.tag}`}
+                        className="inline-flex cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          name="tag"
+                          value={option.tag}
+                          defaultChecked={isTagSelected(
+                            selectedTags,
+                            option.tag
+                          )}
+                          className="peer sr-only"
+                        />
+                        <span className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-medium text-zinc-700 transition peer-checked:border-[#003262] peer-checked:bg-[#003262] peer-checked:text-white hover:border-[#003262]/40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:peer-checked:border-[#FDB515] dark:peer-checked:bg-[#FDB515] dark:peer-checked:text-[#003262]">
+                          {option.tag}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
             <div className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
                 Item condition
@@ -305,6 +394,12 @@ export default async function BrowsePage({
         <div className="min-w-0 flex-1 space-y-6">
           <p className="text-sm text-zinc-500">
             {resultCount} {resultCount === 1 ? "result" : "results"}
+            {selectedTags.length > 0 ? (
+              <span className="text-zinc-400">
+                {" "}
+                · tagged {selectedTags.join(", ")}
+              </span>
+            ) : null}
           </p>
 
           {items.length === 0 ? (

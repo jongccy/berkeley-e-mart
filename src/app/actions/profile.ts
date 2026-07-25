@@ -98,12 +98,30 @@ export async function uploadAvatar(formData: FormData) {
     redirect("/profile/me?error=No file selected.");
   }
 
-  const ext = file.name.split(".").pop() ?? "jpg";
+  const mimeExt =
+    file.type === "image/png"
+      ? "png"
+      : file.type === "image/webp"
+        ? "webp"
+        : file.type === "image/gif"
+          ? "gif"
+          : file.type === "image/jpeg" || file.type === "image/jpg"
+            ? "jpg"
+            : null;
+  const nameExt = file.name.split(".").pop()?.toLowerCase();
+  const ext =
+    mimeExt ??
+    (nameExt && ["png", "webp", "gif", "jpg", "jpeg"].includes(nameExt)
+      ? nameExt === "jpeg"
+        ? "jpg"
+        : nameExt
+      : "jpg");
   const path = `${user.id}/avatar.${ext}`;
+  const contentType = file.type || `image/${ext === "jpg" ? "jpeg" : ext}`;
 
   const { error: uploadError } = await supabase.storage
     .from(AVATAR_BUCKET)
-    .upload(path, file, { upsert: true });
+    .upload(path, file, { upsert: true, contentType });
 
   if (uploadError) {
     redirect(`/profile/me?error=${encodeURIComponent(uploadError.message)}`);
@@ -125,7 +143,13 @@ export async function uploadAvatar(formData: FormData) {
     redirect(`/profile/me?error=${encodeURIComponent(error.message)}`);
   }
 
+  // Keep auth metadata in sync so any Google-photo fallback matches the upload.
+  await supabase.auth.updateUser({
+    data: { avatar_url: avatarUrl },
+  });
+
   revalidatePath("/profile/me");
   revalidatePath(`/profile/${user.id}`);
+  revalidatePath("/", "layout");
   redirect("/profile/me");
 }

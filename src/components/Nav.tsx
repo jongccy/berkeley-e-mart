@@ -4,6 +4,7 @@ import { CalketLogo } from "@/components/CalketLogo";
 import { NavInboxLink } from "@/components/NavInboxLink";
 import { NavProfileMenu } from "@/components/NavProfileMenu";
 import { NavSearch } from "@/components/NavSearch";
+import { getTrendingListingTags } from "@/lib/trending-tags";
 
 export async function Nav() {
   const supabase = await createClient();
@@ -23,15 +24,21 @@ export async function Nav() {
     avatarUrl =
       profile?.avatar_url ??
       (user.user_metadata?.avatar_url as string | undefined) ??
+      (user.user_metadata?.picture as string | undefined) ??
       null;
   }
+
+  const trendingTags = await getTrendingListingTags(supabase, 8);
 
   return (
     <header className="sticky top-0 z-40 border-b border-zinc-200/80 bg-white/95 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/95">
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:gap-5 sm:px-8">
         <CalketLogo height={68} rounded="rounded-xl" />
 
-        <NavSearch className="mx-1 hidden sm:flex sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl" />
+        <NavSearch
+          className="mx-1 hidden sm:flex sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl"
+          trendingTags={trendingTags}
+        />
 
         <nav className="ml-auto flex shrink-0 items-center gap-2 pr-0.5 sm:gap-3">
           {user ? (
@@ -65,7 +72,7 @@ export async function Nav() {
       </div>
 
       <div className="border-t border-zinc-100 px-4 pb-3 pt-2 sm:hidden dark:border-zinc-800">
-        <NavSearch />
+        <NavSearch trendingTags={trendingTags} />
       </div>
     </header>
   );

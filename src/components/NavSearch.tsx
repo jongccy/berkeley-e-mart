@@ -1,14 +1,21 @@
 "use client";
 
 import { CATEGORIES } from "@/lib/constants";
+import {
+  buildBrowseTagOptions,
+  isTagSelected,
+  tagEquals,
+} from "@/lib/listing-tag-filters";
+import type { TrendingListingTag } from "@/lib/trending-tags";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useId, useRef, useState } from "react";
+import { FormEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 
 type Props = {
   className?: string;
+  trendingTags?: TrendingListingTag[];
 };
 
-export function NavSearch({ className = "" }: Props) {
+export function NavSearch({ className = "", trendingTags = [] }: Props) {
   const router = useRouter();
   const panelId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -16,9 +23,19 @@ export function NavSearch({ className = "" }: Props) {
   const [category, setCategory] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
 
-  const hasFilters = Boolean(category || minPrice || maxPrice);
+  const tagOptions = useMemo(
+    () => buildBrowseTagOptions(trendingTags, selectedTags, 6),
+    [trendingTags, selectedTags]
+  );
+  const trendingOptions = tagOptions.filter((option) => option.trending);
+  const moreTagOptions = tagOptions.filter((option) => !option.trending);
+
+  const hasFilters = Boolean(
+    category || minPrice || maxPrice || selectedTags.length > 0
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -48,6 +65,9 @@ export function NavSearch({ className = "" }: Props) {
     if (category) params.set("category", category);
     if (minPrice) params.set("min_price", minPrice);
     if (maxPrice) params.set("max_price", maxPrice);
+    for (const tag of selectedTags) {
+      params.append("tag", tag);
+    }
     const search = params.toString();
     return search ? `/browse?${search}` : "/browse";
   }
@@ -62,11 +82,20 @@ export function NavSearch({ className = "" }: Props) {
     setCategory("");
     setMinPrice("");
     setMaxPrice("");
+    setSelectedTags([]);
   }
 
   function applyFilters() {
     setOpen(false);
     router.push(browseHref());
+  }
+
+  function toggleTag(tag: string) {
+    setSelectedTags((current) =>
+      isTagSelected(current, tag)
+        ? current.filter((value) => !tagEquals(value, tag))
+        : [...current, tag]
+    );
   }
 
   return (
@@ -118,7 +147,7 @@ export function NavSearch({ className = "" }: Props) {
           id={panelId}
           role="dialog"
           aria-label="Search filters"
-          className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 rounded-2xl border border-zinc-200 bg-white p-4 shadow-lg dark:border-zinc-700 dark:bg-zinc-950"
+          className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 max-h-[min(70vh,32rem)] overflow-y-auto rounded-2xl border border-zinc-200 bg-white p-4 shadow-lg dark:border-zinc-700 dark:bg-zinc-950"
         >
           <div className="space-y-3">
             <label className="block space-y-1.5">
@@ -170,6 +199,77 @@ export function NavSearch({ className = "" }: Props) {
                   className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-900 outline-none transition focus:border-[#003262] focus:ring-2 focus:ring-[#003262]/15 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-[#FDB515]"
                 />
               </label>
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                Tags
+              </span>
+
+              {trendingOptions.length > 0 ? (
+                <div className="space-y-1.5">
+                  <p className="text-[11px] font-medium text-[#003262] dark:text-[#FDB515]">
+                    Trending now
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {trendingOptions.map((option) => {
+                      const active = isTagSelected(selectedTags, option.tag);
+                      return (
+                        <button
+                          key={`nav-trend-${option.tag}`}
+                          type="button"
+                          onClick={() => toggleTag(option.tag)}
+                          aria-pressed={active}
+                          className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition ${
+                            active
+                              ? "border-[#003262] bg-[#003262] text-white dark:border-[#FDB515] dark:bg-[#FDB515] dark:text-[#003262]"
+                              : "border-zinc-200 bg-zinc-50 text-zinc-700 hover:border-[#003262]/40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+                          }`}
+                        >
+                          <span>{option.tag}</span>
+                          {option.useCount != null ? (
+                            <span
+                              className={`tabular-nums ${
+                                active ? "opacity-80" : "text-zinc-400"
+                              }`}
+                            >
+                              {option.useCount}
+                            </span>
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
+
+              {moreTagOptions.length > 0 ? (
+                <div className="space-y-1.5">
+                  <p className="text-[11px] font-medium text-zinc-500">
+                    {trendingOptions.length > 0 ? "More tags" : "Popular tags"}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {moreTagOptions.map((option) => {
+                      const active = isTagSelected(selectedTags, option.tag);
+                      return (
+                        <button
+                          key={`nav-more-${option.tag}`}
+                          type="button"
+                          onClick={() => toggleTag(option.tag)}
+                          aria-pressed={active}
+                          className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium transition ${
+                            active
+                              ? "border-[#003262] bg-[#003262] text-white dark:border-[#FDB515] dark:bg-[#FDB515] dark:text-[#003262]"
+                              : "border-zinc-200 bg-zinc-50 text-zinc-700 hover:border-[#003262]/40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+                          }`}
+                        >
+                          {option.tag}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
 

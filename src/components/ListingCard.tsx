@@ -94,12 +94,14 @@ export function ListingCard({
           />
         </p>
 
-        {listing.tags?.length > 0 && (
-          <ListingTags tags={listing.tags.slice(0, 3)} size="sm" />
-        )}
-
         <p className="text-xs text-zinc-400">{formatCategory(listing.category)}</p>
       </Link>
+
+      {listing.tags?.length > 0 && (
+        <div className="mt-1.5 px-0.5">
+          <ListingTags tags={listing.tags.slice(0, 3)} size="sm" />
+        </div>
+      )}
     </div>
   );
 }

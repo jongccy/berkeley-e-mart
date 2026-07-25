@@ -2,15 +2,14 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isBerkeleyEmail, TERMS_ACKNOWLEDGED_COOKIE } from "@/lib/auth";
-import { AVATAR_BUCKET } from "@/lib/constants";
 import { isVerifiedBerkeleyUser } from "@/lib/supabase/auth-helpers";
 
-function isCustomUploadedAvatar(url: string | null | undefined): boolean {
-  if (!url) return false;
-  return (
-    url.includes(`/storage/v1/object/public/${AVATAR_BUCKET}/`) ||
-    url.includes(`/${AVATAR_BUCKET}/`)
-  );
+function oauthAvatarUrl(user: {
+  user_metadata?: Record<string, unknown> | null;
+}): string | null {
+  const meta = user.user_metadata ?? {};
+  const url = meta.avatar_url ?? meta.picture;
+  return typeof url === "string" && url.length > 0 ? url : null;
 }
 
 export async function GET(request: Request) {
@@ -55,37 +54,36 @@ export async function GET(request: Request) {
     user.user_metadata?.name ??
     user.email.split("@")[0];
 
-  const googleAvatar =
-    (user.user_metadata?.avatar_url as string | undefined) ?? null;
-
   const { data: existing } = await supabase
     .from("profiles")
-    .select("avatar_url")
+    .select("id")
     .eq("id", user.id)
     .maybeSingle();
 
-  const profilePayload: {
-    id: string;
-    display_name: string;
-    avatar_url?: string | null;
-    is_verified_berkeley: boolean;
-    terms_accepted_at?: string;
-  } = {
-    id: user.id,
-    display_name: displayName,
-    is_verified_berkeley: isVerifiedBerkeleyUser(user),
-  };
-
-  // Never overwrite a user-uploaded avatar with the Google photo on re-login.
-  if (!isCustomUploadedAvatar(existing?.avatar_url)) {
-    profilePayload.avatar_url = googleAvatar;
+  // Never use upsert here: omitted columns (e.g. avatar_url) can be written as
+  // null and wipe a custom profile photo on every OAuth sign-in / redeploy.
+  if (!existing) {
+    await supabase.from("profiles").insert({
+      id: user.id,
+      display_name: displayName,
+      avatar_url: oauthAvatarUrl(user),
+      is_verified_berkeley: isVerifiedBerkeleyUser(user),
+      ...(termsAcknowledged
+        ? { terms_accepted_at: new Date().toISOString() }
+        : {}),
+    });
+  } else {
+    await supabase
+      .from("profiles")
+      .update({
+        display_name: displayName,
+        is_verified_berkeley: isVerifiedBerkeleyUser(user),
+        ...(termsAcknowledged
+          ? { terms_accepted_at: new Date().toISOString() }
+          : {}),
+      })
+      .eq("id", user.id);
   }
-
-  if (termsAcknowledged) {
-    profilePayload.terms_accepted_at = new Date().toISOString();
-  }
-
-  await supabase.from("profiles").upsert(profilePayload, { onConflict: "id" });
 
   const { data: profile } = await supabase
     .from("profiles")
