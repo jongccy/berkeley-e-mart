@@ -185,19 +185,32 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
         />
       </div>
 
-      <div>
-        <label className="mb-1 block text-sm font-medium">
-          Description (optional)
-        </label>
-        <textarea
-          name="description"
-          rows={5}
-          defaultValue={listing?.description ?? ""}
-          className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
-        />
-      </div>
-
       <div className={isHousing ? "" : "grid gap-4 sm:grid-cols-2"}>
+        {!isHousing && (
+          <div>
+            <label className="mb-1 block text-sm font-medium">Price</label>
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
+                $
+              </span>
+              <input
+                name="price"
+                type="text"
+                inputMode="decimal"
+                required
+                value={price}
+                onChange={(e) => handlePriceChange(e.target.value)}
+                placeholder="0.00"
+                className="w-full rounded-lg border border-zinc-300 py-2 pl-7 pr-3 dark:border-zinc-700 dark:bg-zinc-950"
+              />
+            </div>
+            {isFreeListing && (
+              <p className="mt-1 text-xs text-zinc-500">
+                $0 listings are categorized as Free / Giveaway.
+              </p>
+            )}
+          </div>
+        )}
         <div>
           <label className="mb-1 block text-sm font-medium">Category</label>
           <select
@@ -224,31 +237,6 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
               )}
           </select>
         </div>
-        {!isHousing && (
-          <div>
-            <label className="mb-1 block text-sm font-medium">Price</label>
-            <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
-                $
-              </span>
-              <input
-                name="price"
-                type="text"
-                inputMode="decimal"
-                required
-                value={price}
-                onChange={(e) => handlePriceChange(e.target.value)}
-                placeholder="0.00"
-                className="w-full rounded-lg border border-zinc-300 py-2 pl-7 pr-3 dark:border-zinc-700 dark:bg-zinc-950"
-              />
-            </div>
-            {isFreeListing && (
-              <p className="mt-1 text-xs text-zinc-500">
-                $0 listings are categorized as Free / Giveaway.
-              </p>
-            )}
-          </div>
-        )}
       </div>
 
       {isHousing && (
@@ -258,18 +246,13 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
           </legend>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
-              Exact location
-            </label>
+            <label className="mb-1 block text-sm font-medium">Location</label>
             <input
               name="address_area"
               required
               defaultValue={listing?.address_area ?? ""}
               className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
             />
-            <p className="mt-1 text-xs text-zinc-500">
-              Full street address required — not a neighborhood or general area.
-            </p>
             {housingLocationError && (
               <p className="mt-1 text-sm text-red-600 dark:text-red-400">
                 {housingLocationError}
@@ -279,7 +262,7 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-medium"># of beds</label>
+              <label className="mb-1 block text-sm font-medium">Beds</label>
               <input
                 name="bedrooms"
                 type="number"
@@ -290,9 +273,7 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">
-                # of bathrooms
-              </label>
+              <label className="mb-1 block text-sm font-medium">Bathrooms</label>
               <input
                 name="bathrooms"
                 type="number"
@@ -378,6 +359,18 @@ export function ListingForm({ listing, existingPhotos = [], initialError }: Prop
           </div>
         </fieldset>
       )}
+
+      <div>
+        <label className="mb-1 block text-sm font-medium">
+          Description (optional)
+        </label>
+        <textarea
+          name="description"
+          rows={5}
+          defaultValue={listing?.description ?? ""}
+          className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+        />
+      </div>
 
       <div>
         <label className="mb-2 block text-sm font-medium">Condition</label>
